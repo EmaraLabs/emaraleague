@@ -27,7 +27,6 @@ subprojects {
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://maven.enginehub.org/repo/")
-        maven("https://repo.luckperms.me/")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
         maven("https://jitpack.io")
     }
