@@ -29,6 +29,7 @@ subprojects {
         maven("https://maven.enginehub.org/repo/")
         maven("https://repo.luckperms.me/")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+        maven("https://jitpack.io")
     }
 
     tasks.withType<JavaCompile>().configureEach {
