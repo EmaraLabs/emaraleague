@@ -8,12 +8,21 @@ public class PlayerSession {
     private final String playerName;
     private boolean active;
     private boolean spectator;
+    private UUID teamId;
+    private int kills;
+    private int deaths;
+    private int wins;
+    private int losses;
 
-    public PlayerSession(String playerName) {
-        this.playerId = UUID.randomUUID();
+    public PlayerSession(UUID playerId, String playerName) {
+        this.playerId = playerId;
         this.playerName = playerName;
         this.active = true;
         this.spectator = false;
+        this.kills = 0;
+        this.deaths = 0;
+        this.wins = 0;
+        this.losses = 0;
     }
 
     public UUID getPlayerId() {
@@ -38,5 +47,45 @@ public class PlayerSession {
 
     public void setSpectator(boolean spectator) {
         this.spectator = spectator;
+    }
+
+    public UUID getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(UUID teamId) {
+        this.teamId = teamId;
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public void addKill() {
+        this.kills++;
+    }
+
+    public int getDeaths() {
+        return deaths;
+    }
+
+    public void addDeath() {
+        this.deaths++;
+    }
+
+    public int getWins() {
+        return wins;
+    }
+
+    public void addWin() {
+        this.wins++;
+    }
+
+    public int getLosses() {
+        return losses;
+    }
+
+    public void addLoss() {
+        this.losses++;
     }
 }

@@ -26,7 +26,24 @@ public class Arena {
         return state;
     }
 
-    public void setState(ArenaState state) {
-        this.state = state;
+    public void setState(ArenaState newState) {
+        validateStateTransition(this.state, newState);
+        this.state = newState;
+    }
+
+    private void validateStateTransition(ArenaState current, ArenaState next) {
+        boolean valid = switch (current) {
+            case LOBBY -> next == ArenaState.STARTING;
+            case STARTING -> next == ArenaState.INGAME;
+            case INGAME -> next == ArenaState.ENDING;
+            case ENDING -> next == ArenaState.RESETTING;
+            case RESETTING -> next == ArenaState.LOBBY;
+        };
+        
+        if (!valid) {
+            throw new IllegalStateException(
+                String.format("Invalid state transition: %s -> %s", current, next)
+            );
+        }
     }
 }

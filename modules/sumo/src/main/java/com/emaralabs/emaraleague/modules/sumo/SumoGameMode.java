@@ -1,25 +1,51 @@
 package com.emaralabs.emaraleague.modules.sumo;
 
-public class SumoGameMode {
+import com.emaralabs.emaraleague.core.game.GameMode;
+import com.emaralabs.emaraleague.core.game.WinCondition;
+import com.emaralabs.emaraleague.core.tournament.Match;
+import com.emaralabs.emaraleague.core.tournament.Team;
+
+public class SumoGameMode implements GameMode {
 
     private static final String ID = "sumo";
     private static final String DISPLAY_NAME = "Sumo";
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 2;
 
+    @Override
     public String getId() {
         return ID;
     }
 
+    @Override
     public String getDisplayName() {
         return DISPLAY_NAME;
     }
 
+    @Override
     public int getMinPlayers() {
         return MIN_PLAYERS;
     }
 
+    @Override
     public int getMaxPlayers() {
         return MAX_PLAYERS;
+    }
+
+    @Override
+    public void onMatchStart(Match match) {
+    }
+
+    @Override
+    public void onMatchTick(Match match) {
+    }
+
+    @Override
+    public void onMatchEnd(Match match, Team winner) {
+    }
+
+    @Override
+    public WinCondition getWinCondition() {
+        return WinCondition.LAST_TEAM_STANDING;
     }
 }
