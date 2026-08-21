@@ -1,0 +1,11 @@
+name: EmaraLeague
+version: '${version}'
+main: com.emaralabs.emaraleague.EmaraLeaguePlugin
+description: Premium Minecraft tournament and events engine
+api-version: '1.21'
+author: Haris
+authors: [Haris]
+website: https://emaralabs.com
+prefix: EmaraLeague
+load: STARTUP
+has-open-classloader: false

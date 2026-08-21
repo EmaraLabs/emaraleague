@@ -1,0 +1,46 @@
+# Gradle
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local config / secrets
+*.local
+secrets.properties
+local.properties
+
+# Test server artifacts
+run/
+server/
+
+# HDS / Hermes internal
+.hermes/
+
+# Database
+*.db
+*.sqlite
+
+# Temp
+tmp/
+temp/
