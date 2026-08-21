@@ -2,6 +2,7 @@ package com.emaralabs.emaraleague.infrastructure.database;
 
 import com.emaralabs.emaraleague.core.tournament.BracketType;
 import com.emaralabs.emaraleague.core.tournament.Tournament;
+import com.emaralabs.emaraleague.core.tournament.TournamentState;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,11 +70,11 @@ class TournamentRepositoryTest {
         Tournament tournament = new Tournament("Original", "duels", BracketType.SINGLE_ELIMINATION);
         repo.save(tournament).join();
 
-        Tournament updated = tournament.withState(com.emaralabs.emaraleague.core.tournament.TournamentState.IN_PROGRESS);
+        Tournament updated = tournament.withState(TournamentState.IN_PROGRESS);
         repo.update(updated).join();
 
         Optional<Tournament> found = repo.findById(tournament.id()).join();
         assertTrue(found.isPresent());
-        assertEquals(com.emaralabs.emaraleague.core.tournament.TournamentState.IN_PROGRESS, found.get().state());
+        assertEquals(TournamentState.IN_PROGRESS, found.get().state());
     }
 }

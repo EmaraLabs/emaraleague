@@ -1,6 +1,8 @@
 package com.emaralabs.emaraleague.infrastructure.database;
 
+import com.emaralabs.emaraleague.core.tournament.BracketType;
 import com.emaralabs.emaraleague.core.tournament.Tournament;
+import com.emaralabs.emaraleague.core.tournament.TournamentState;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -120,8 +122,8 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
             UUID.fromString(rs.getString("id")),
             rs.getString("name"),
             rs.getString("mode"),
-            com.emaralabs.emaraleague.core.tournament.BracketType.valueOf(rs.getString("bracket_type")),
-            com.emaralabs.emaraleague.core.tournament.TournamentState.valueOf(rs.getString("state")),
+            BracketType.valueOf(rs.getString("bracket_type")),
+            TournamentState.valueOf(rs.getString("state")),
             new ArrayList<>(),
             new ArrayList<>()
         );
