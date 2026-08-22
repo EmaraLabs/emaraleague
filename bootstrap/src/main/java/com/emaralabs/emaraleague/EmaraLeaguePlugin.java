@@ -57,7 +57,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
         matchEngine.setGameModeRegistry(gameModeRegistry);
         matchEngine.setCountdown(matchCountdown);
 
-        EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager);
+        EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager, arenaManager);
         getCommand("emaraleague").setExecutor(command);
         getCommand("emaraleague").setTabCompleter(command);
 

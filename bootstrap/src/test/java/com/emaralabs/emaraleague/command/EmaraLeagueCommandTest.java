@@ -1,5 +1,6 @@
 package com.emaralabs.emaraleague.command;
 
+import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -16,6 +17,7 @@ class EmaraLeagueCommandTest {
 
     private Plugin mockPlugin;
     private TournamentManager tournamentManager;
+    private ArenaManager arenaManager;
     private EmaraLeagueCommand cmd;
 
     @BeforeEach
@@ -24,7 +26,8 @@ class EmaraLeagueCommandTest {
         when(mockPlugin.getDataFolder()).thenReturn(new File("build/tmp/test-cmd"));
         when(mockPlugin.getLogger()).thenReturn(Logger.getLogger("test"));
         tournamentManager = new TournamentManager();
-        cmd = new EmaraLeagueCommand(mockPlugin, tournamentManager);
+        arenaManager = new ArenaManager();
+        cmd = new EmaraLeagueCommand(mockPlugin, tournamentManager, arenaManager);
     }
 
     @Test

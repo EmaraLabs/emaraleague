@@ -1,10 +1,16 @@
 package com.emaralabs.emaraleague.core.match;
 
+import com.emaralabs.emaraleague.core.arena.Arena;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
+import com.emaralabs.emaraleague.core.arena.ArenaState;
 import com.emaralabs.emaraleague.core.bracket.Bracket;
 import com.emaralabs.emaraleague.core.bracket.BracketGenerator;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
+import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
+import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.*;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +24,11 @@ public final class MatchEngine {
     private final ArenaManager arenas;
     private final Map<UUID, Match> matches = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> matchToTournament = new ConcurrentHashMap<>();
+    private final Map<UUID, UUID> matchToArena = new ConcurrentHashMap<>();
     private GameModeRegistry gameModeRegistry;
     private MatchCountdown countdown;
+    private TeleportService teleportService;
+    private PlayerSessionManager playerSessions;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -32,6 +41,14 @@ public final class MatchEngine {
 
     public void setCountdown(MatchCountdown countdown) {
         this.countdown = countdown;
+    }
+
+    public void setTeleportService(TeleportService teleportService) {
+        this.teleportService = teleportService;
+    }
+
+    public void setPlayerSessionManager(PlayerSessionManager playerSessions) {
+        this.playerSessions = playerSessions;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -53,17 +70,68 @@ public final class MatchEngine {
         Match updated = match.withState(MatchState.STARTING);
         matches.put(matchId, updated);
 
+        // Auto-assign arena
+        assignArenaToMatch(matchId);
+
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);
             tournaments.getTournament(tournamentId).ifPresent(t ->
                     gameModeRegistry.getMode(t.mode()).ifPresent(mode -> mode.onMatchStart(updated)));
         }
 
+        // Teleport players to arena
+        teleportPlayersToArena(matchId);
+
         if (countdown != null) {
             countdown.startCountdown(updated, 10, () -> beginPlay(matchId));
         }
 
         return updated;
+    }
+
+    private void assignArenaToMatch(UUID matchId) {
+        List<Arena> available = arenas.getAvailableArenas();
+        if (available.isEmpty()) {
+            return;
+        }
+        Arena arena = available.get(0);
+        arenas.transitionArena(arena.getName(), ArenaState.STARTING);
+        matchToArena.put(matchId, arena.getId());
+    }
+
+    private void teleportPlayersToArena(UUID matchId) {
+        if (teleportService == null || playerSessions == null) {
+            return;
+        }
+        UUID arenaId = matchToArena.get(matchId);
+        if (arenaId == null) {
+            return;
+        }
+        Optional<Arena> arena = arenas.getArena(arenaId);
+        if (arena.isEmpty() || arena.get().getCenter() == null) {
+            return;
+        }
+
+        Match match = matches.get(matchId);
+        if (match == null) {
+            return;
+        }
+
+        UUID tournamentId = matchToTournament.get(matchId);
+        if (tournamentId == null) {
+            return;
+        }
+
+        tournaments.getTournament(tournamentId).ifPresent(t -> {
+            for (Team team : t.teams()) {
+                for (UUID playerId : team.playerIds()) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        teleportService.teleportToArena(player, arena.get());
+                    }
+                }
+            }
+        });
     }
 
     public Match beginPlay(UUID matchId) {
@@ -74,6 +142,17 @@ public final class MatchEngine {
         validateMatchTransition(match.state(), MatchState.INGAME);
         Match updated = match.withState(MatchState.INGAME);
         matches.put(matchId, updated);
+
+        // Transition arena to INGAME
+        UUID arenaId = matchToArena.get(matchId);
+        if (arenaId != null) {
+            arenas.getArena(arenaId).ifPresent(arena -> {
+                if (arena.getState() == ArenaState.STARTING) {
+                    arenas.transitionArena(arena.getName(), ArenaState.INGAME);
+                }
+            });
+        }
+
         return updated;
     }
 
@@ -86,6 +165,21 @@ public final class MatchEngine {
         Match updated = match.withWinner(winner);
         matches.put(matchId, updated);
 
+        // Transition arena to ENDING, then reset to LOBBY
+        UUID arenaId = matchToArena.get(matchId);
+        if (arenaId != null) {
+            arenas.getArena(arenaId).ifPresent(arena -> {
+                if (arena.getState() == ArenaState.INGAME) {
+                    arenas.transitionArena(arena.getName(), ArenaState.ENDING);
+                    arenas.transitionArena(arena.getName(), ArenaState.RESETTING);
+                    arenas.transitionArena(arena.getName(), ArenaState.LOBBY);
+                }
+            });
+        }
+
+        // Teleport players back to lobby
+        teleportPlayersToLobby(matchId);
+
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);
             tournaments.getTournament(tournamentId).ifPresent(t ->
@@ -93,6 +187,41 @@ public final class MatchEngine {
         }
 
         return updated;
+    }
+
+    private void teleportPlayersToLobby(UUID matchId) {
+        if (teleportService == null || playerSessions == null) {
+            return;
+        }
+        UUID arenaId = matchToArena.get(matchId);
+        if (arenaId == null) {
+            return;
+        }
+        Optional<Arena> arena = arenas.getArena(arenaId);
+        if (arena.isEmpty() || arena.get().getLobbySpawn() == null) {
+            return;
+        }
+
+        Match match = matches.get(matchId);
+        if (match == null) {
+            return;
+        }
+
+        UUID tournamentId = matchToTournament.get(matchId);
+        if (tournamentId == null) {
+            return;
+        }
+
+        tournaments.getTournament(tournamentId).ifPresent(t -> {
+            for (Team team : t.teams()) {
+                for (UUID playerId : team.playerIds()) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        teleportService.teleportToLobby(player);
+                    }
+                }
+            }
+        });
     }
 
     public Optional<Match> getMatch(UUID matchId) {

@@ -1,5 +1,7 @@
 package com.emaralabs.emaraleague.command;
 
+import com.emaralabs.emaraleague.core.arena.Arena;
+import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.tournament.BracketType;
 import com.emaralabs.emaraleague.core.tournament.Team;
 import com.emaralabs.emaraleague.core.tournament.Tournament;
@@ -10,6 +12,7 @@ import com.emaralabs.emaraleague.core.ui.InputValidator;
 import com.emaralabs.emaraleague.core.ui.MessageFormatter;
 import com.emaralabs.emaraleague.core.ui.MessageRegistry;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,6 +32,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
     private final Plugin plugin;
     private final MessageRegistry messages;
     private final TournamentManager tournamentManager;
+    private final ArenaManager arenaManager;
 
     private static final List<String> GAME_MODES = List.of(
             "duels", "spleef", "sumo", "tnt-run", "parkour", "capture-the-flag"
@@ -39,15 +43,17 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             new SubCommand("join", "/emaraleague join <tournament>", "Join a tournament", "emaraleague.play"),
             new SubCommand("leave", "/emaraleague leave", "Leave your current tournament", "emaraleague.play"),
             new SubCommand("team", "/emaraleague team <join|leave|list>", "Manage teams", "emaraleague.play"),
+            new SubCommand("arena", "/emaraleague arena <create|setcenter|setlobby|list|delete>", "Manage arenas", "emaraleague.admin"),
             new SubCommand("start", "/emaraleague start <tournament>", "Start a tournament", "emaraleague.admin"),
             new SubCommand("info", "/emaraleague info <tournament>", "View tournament details", "emaraleague.use"),
             new SubCommand("help", "/emaraleague help", "Show this menu", "emaraleague.use"),
             new SubCommand("reload", "/emaraleague reload", "Reload configuration", "emaraleague.admin")
     );
 
-    public EmaraLeagueCommand(Plugin plugin, TournamentManager tournamentManager) {
+    public EmaraLeagueCommand(Plugin plugin, TournamentManager tournamentManager, ArenaManager arenaManager) {
         this.plugin = plugin;
         this.tournamentManager = tournamentManager;
+        this.arenaManager = arenaManager;
         this.messages = new MessageRegistry(plugin);
     }
 
@@ -82,6 +88,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             case "join" -> handleJoin(sender, args);
             case "leave" -> handleLeave(sender);
             case "team" -> handleTeam(sender, args);
+            case "arena" -> handleArena(sender, args);
             case "start" -> handleStart(sender, args);
             case "info" -> handleInfo(sender, args);
             case "help" -> sendHelp(sender);
@@ -266,6 +273,117 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void handleArena(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena <create|setcenter|setlobby|list|delete>")));
+            return;
+        }
+
+        switch (args[1].toLowerCase()) {
+            case "create" -> handleArenaCreate(sender, args);
+            case "setcenter" -> handleArenaSetCenter(sender, args);
+            case "setlobby" -> handleArenaSetLobby(sender, args);
+            case "list" -> handleArenaList(sender);
+            case "delete" -> handleArenaDelete(sender, args);
+            default -> sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena <create|setcenter|setlobby|list|delete>")));
+        }
+    }
+
+    private void handleArenaCreate(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena create <name>")));
+            return;
+        }
+
+        String name = args[2];
+        var nameResult = InputValidator.validateArenaName(name);
+        if (!nameResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        try {
+            arenaManager.createArena(name);
+            sender.sendMessage(MessageFormatter.success("Arena '" + name + "' created."));
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        }
+    }
+
+    private void handleArenaSetCenter(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena setcenter <name>")));
+            return;
+        }
+
+        String name = args[2];
+        Optional<Arena> arena = arenaManager.getArena(name);
+        if (arena.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("Arena not found: " + name));
+            return;
+        }
+
+        arena.get().setCenter(player.getLocation());
+        sender.sendMessage(MessageFormatter.success("Arena '" + name + "' center set to your location."));
+    }
+
+    private void handleArenaSetLobby(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena setlobby <name>")));
+            return;
+        }
+
+        String name = args[2];
+        Optional<Arena> arena = arenaManager.getArena(name);
+        if (arena.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("Arena not found: " + name));
+            return;
+        }
+
+        arena.get().setLobbySpawn(player.getLocation());
+        sender.sendMessage(MessageFormatter.success("Arena '" + name + "' lobby spawn set to your location."));
+    }
+
+    private void handleArenaList(CommandSender sender) {
+        List<Arena> arenas = arenaManager.getArenas();
+        if (arenas.isEmpty()) {
+            sender.sendMessage(MessageFormatter.info("No arenas created yet."));
+            return;
+        }
+
+        sender.sendMessage(MessageFormatter.header("Arenas"));
+        for (Arena arena : arenas) {
+            String centerInfo = arena.getCenter() != null ? "center set" : "no center";
+            Component line = Component.text()
+                    .append(Component.text("  " + arena.getName(), EmaraTheme.WARNING))
+                    .append(Component.text(" (" + arena.getState() + ", " + centerInfo + ")", EmaraTheme.MUTED))
+                    .build();
+            sender.sendMessage(line);
+        }
+    }
+
+    private void handleArenaDelete(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena delete <name>")));
+            return;
+        }
+
+        String name = args[2];
+        if (arenaManager.deleteArena(name)) {
+            sender.sendMessage(MessageFormatter.success("Arena '" + name + "' deleted."));
+        } else {
+            sender.sendMessage(MessageFormatter.error("Arena not found: " + name));
+        }
+    }
+
     private void handleInfo(CommandSender sender, String[] args) {
         if (args.length < 2) {
             sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague info <tournament>")));
@@ -324,6 +442,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return switch (args[0].toLowerCase()) {
                 case "create" -> filterCompletions(List.of("<name>"), args[1]);
                 case "join", "start", "info", "team" -> filterCompletions(getTournamentNames(), args[1]);
+                case "arena" -> filterCompletions(List.of("create", "setcenter", "setlobby", "list", "delete"), args[1]);
                 default -> Collections.emptyList();
             };
         }
@@ -337,6 +456,9 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             }
             if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("list")) {
                 return filterCompletions(getTournamentNames(), args[2]);
+            }
+            if (args[0].equalsIgnoreCase("arena")) {
+                return filterCompletions(getArenaNames(), args[2]);
             }
         }
 
@@ -380,6 +502,12 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
                         .map(Team::name)
                         .toList())
                 .orElse(List.of());
+    }
+
+    private List<String> getArenaNames() {
+        return arenaManager.getArenas().stream()
+                .map(Arena::getName)
+                .toList();
     }
 
     private boolean hasPermission(CommandSender sender, String subCommand) {

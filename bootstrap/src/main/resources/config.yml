@@ -1,0 +1,36 @@
+# EmaraLeague Configuration
+
+# Countdown duration before match starts (seconds)
+countdown-seconds: 10
+
+# Arena settings
+arena:
+  # Y-level below which players are eliminated (Spleef)
+  fall-threshold: 0
+  # Auto-assign available arena to match
+  auto-assign: true
+
+# Match settings
+match:
+  # Default game mode for new tournaments
+  default-mode: duels
+  # Maximum concurrent matches per server
+  max-concurrent: 4
+
+# Database settings
+database:
+  # SQLite file path (relative to plugin folder)
+  path: emaraleague.db
+  # MySQL settings (uncomment for production)
+  # host: localhost
+  # port: 3306
+  # database: emaraleague
+  # username: root
+  # password: password
+
+# UI settings
+ui:
+  # Show BossBar countdown
+  bossbar-countdown: true
+  # Show scoreboard during match
+  scoreboard: true
