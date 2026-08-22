@@ -15,6 +15,7 @@ import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
 import com.emaralabs.emaraleague.modules.duels.DuelsGameMode;
 import com.emaralabs.emaraleague.modules.spleef.SpleefGameMode;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class EmaraLeaguePlugin extends JavaPlugin {
@@ -64,7 +65,12 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
             matchEngine.setCountdown(matchCountdown);
 
             EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager, arenaManager);
-            getCommand("emaraleague").setExecutor(command);
+            getServer().getCommandMap().register("emaraleague", new org.bukkit.command.Command("emaraleague") {
+                @Override
+                public boolean execute(CommandSender sender, String label, String[] args) {
+                    return command.onCommand(sender, this, label, args);
+                }
+            });
             getCommand("emaraleague").setTabCompleter(command);
 
             PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator);
