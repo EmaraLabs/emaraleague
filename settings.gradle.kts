@@ -13,6 +13,8 @@ include(
     "modules:spleef",
     "modules:sumo",
     "modules:tnt-run",
+    "modules:parkour",
+    "modules:capture-the-flag",
 
     "integrations:vault",
     "integrations:placeholderapi",
@@ -29,4 +31,5 @@ include(
     "addons:web-dashboard",
     "addons:discord",
     "addons:spectator-tools",
+    "addons:replay",
 )
