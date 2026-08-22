@@ -22,4 +22,10 @@ class GuiEditorTest {
         GuiEditor editor = new GuiEditor(null);
         assertEquals(27, editor.getSize());
     }
+
+    @Test
+    void testGuiEditorRows() {
+        GuiEditor editor = new GuiEditor(null);
+        assertEquals(3, editor.getRows());
+    }
 }
