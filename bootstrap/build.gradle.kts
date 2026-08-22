@@ -1,6 +1,5 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 java {
@@ -37,10 +36,13 @@ tasks.test {
     failOnNoDiscoveredTests = false
 }
 
-tasks.shadowJar {
+tasks.jar {
     archiveFileName.set("EmaraLeague-${project.version}.jar")
-    relocate("com.github.benmanes.caffeine", "com.emaralabs.emaraleague.libs.caffeine")
-    relocate("org.spongepowered.configurate", "com.emaralabs.emaraleague.libs.configurate")
-    relocate("com.zaxxer.hikari", "com.emaralabs.emaraleague.libs.hikari")
-    relocate("org.jetbrains.exposed", "com.emaralabs.emaraleague.libs.exposed")
+    manifest {
+        attributes(
+            "Main-Class" to "com.emaralabs.emaraleague.EmaraLeaguePlugin",
+            "Implementation-Title" to "EmaraLeague",
+            "Implementation-Version" to project.version
+        )
+    }
 }
