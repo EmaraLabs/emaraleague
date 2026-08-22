@@ -31,18 +31,20 @@ public class Arena {
         this.state = newState;
     }
 
-    private void validateStateTransition(ArenaState current, ArenaState next) {
-        boolean valid = switch (current) {
+    public boolean canTransitionTo(ArenaState next) {
+        return switch (state) {
             case LOBBY -> next == ArenaState.STARTING;
             case STARTING -> next == ArenaState.INGAME;
             case INGAME -> next == ArenaState.ENDING;
             case ENDING -> next == ArenaState.RESETTING;
             case RESETTING -> next == ArenaState.LOBBY;
         };
-        
-        if (!valid) {
+    }
+
+    private void validateStateTransition(ArenaState current, ArenaState next) {
+        if (!canTransitionTo(next)) {
             throw new IllegalStateException(
-                String.format("Invalid state transition: %s -> %s", current, next)
+                    String.format("Invalid state transition: %s -> %s", current, next)
             );
         }
     }
