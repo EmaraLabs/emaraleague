@@ -296,4 +296,121 @@ class TournamentManagerTest {
         TournamentManager manager = new TournamentManager();
         assertEquals(0, manager.getTeamCount("NonExistent"));
     }
+
+    // ── Player Assignment ───────────────────────────────────────────
+
+    @Test
+    void assignPlayerToTeam_addsPlayer() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team team = new Team("Alpha", 1);
+        manager.addTeam("Cup", team);
+        UUID playerId = UUID.randomUUID();
+
+        Tournament updated = manager.assignPlayerToTeam("Cup", team.id(), playerId);
+        assertEquals(1, updated.teams().get(0).getPlayerCount());
+        assertTrue(updated.teams().get(0).hasPlayer(playerId));
+    }
+
+    @Test
+    void assignPlayerToTeam_multiplePlayers() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team team = new Team("Alpha", 1);
+        manager.addTeam("Cup", team);
+        UUID p1 = UUID.randomUUID();
+        UUID p2 = UUID.randomUUID();
+
+        manager.assignPlayerToTeam("Cup", team.id(), p1);
+        Tournament updated = manager.assignPlayerToTeam("Cup", team.id(), p2);
+        assertEquals(2, updated.teams().get(0).getPlayerCount());
+    }
+
+    @Test
+    void assignPlayerToTeam_teamNotFound_throwsException() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        assertThrows(IllegalArgumentException.class,
+                () -> manager.assignPlayerToTeam("Cup", UUID.randomUUID(), UUID.randomUUID()));
+    }
+
+    @Test
+    void assignPlayerToTeam_afterRegistration_throwsException() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team team = new Team("Alpha", 1);
+        manager.addTeam("Cup", team);
+        manager.transitionState("Cup", TournamentState.STARTING);
+
+        assertThrows(IllegalStateException.class,
+                () -> manager.assignPlayerToTeam("Cup", team.id(), UUID.randomUUID()));
+    }
+
+    @Test
+    void removePlayerFromTeam_removesPlayer() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team team = new Team("Alpha", 1);
+        manager.addTeam("Cup", team);
+        UUID playerId = UUID.randomUUID();
+        manager.assignPlayerToTeam("Cup", team.id(), playerId);
+
+        Tournament updated = manager.removePlayerFromTeam("Cup", team.id(), playerId);
+        assertEquals(0, updated.teams().get(0).getPlayerCount());
+    }
+
+    @Test
+    void getTeamForPlayer_returnsCorrectTeam() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team alpha = new Team("Alpha", 1);
+        Team beta = new Team("Beta", 2);
+        manager.addTeam("Cup", alpha);
+        manager.addTeam("Cup", beta);
+        UUID playerId = UUID.randomUUID();
+        manager.assignPlayerToTeam("Cup", alpha.id(), playerId);
+
+        Optional<Team> found = manager.getTeamForPlayer("Cup", playerId);
+        assertTrue(found.isPresent());
+        assertEquals("Alpha", found.get().name());
+    }
+
+    @Test
+    void getTeamForPlayer_notAssigned_returnsEmpty() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        manager.addTeam("Cup", new Team("Alpha", 1));
+
+        Optional<Team> found = manager.getTeamForPlayer("Cup", UUID.randomUUID());
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void getPlayersInTeam_returnsPlayerList() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team team = new Team("Alpha", 1);
+        manager.addTeam("Cup", team);
+        UUID p1 = UUID.randomUUID();
+        UUID p2 = UUID.randomUUID();
+        manager.assignPlayerToTeam("Cup", team.id(), p1);
+        manager.assignPlayerToTeam("Cup", team.id(), p2);
+
+        List<UUID> players = manager.getPlayersInTeam("Cup", team.id());
+        assertEquals(2, players.size());
+        assertTrue(players.contains(p1));
+        assertTrue(players.contains(p2));
+    }
+
+    @Test
+    void getTeamPlayerCount_returnsCorrectCount() {
+        TournamentManager manager = new TournamentManager();
+        manager.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Team team = new Team("Alpha", 1);
+        manager.addTeam("Cup", team);
+        assertEquals(0, manager.getTeamPlayerCount("Cup", team.id()));
+
+        manager.assignPlayerToTeam("Cup", team.id(), UUID.randomUUID());
+        assertEquals(1, manager.getTeamPlayerCount("Cup", team.id()));
+    }
 }

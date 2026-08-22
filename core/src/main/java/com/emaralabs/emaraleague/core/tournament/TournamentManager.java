@@ -157,4 +157,84 @@ public final class TournamentManager {
                 .map(t -> t.teams().size())
                 .orElse(0);
     }
+
+    public Tournament assignPlayerToTeam(String tournamentName, UUID teamId, UUID playerId) {
+        Tournament current = byName.get(tournamentName.toLowerCase());
+        if (current == null) {
+            throw new IllegalArgumentException("Tournament not found: " + tournamentName);
+        }
+        if (current.state() != TournamentState.REGISTRATION) {
+            throw new IllegalStateException("Cannot assign players after registration closes");
+        }
+
+        boolean teamFound = false;
+        List<Team> updatedTeams = new ArrayList<>();
+        for (Team team : current.teams()) {
+            if (team.id().equals(teamId)) {
+                updatedTeams.add(team.addPlayer(playerId));
+                teamFound = true;
+            } else {
+                updatedTeams.add(team);
+            }
+        }
+
+        if (!teamFound) {
+            throw new IllegalArgumentException("Team not found: " + teamId);
+        }
+
+        Tournament updated = current.withTeams(updatedTeams);
+        byName.put(tournamentName.toLowerCase(), updated);
+        byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
+        return updated;
+    }
+
+    public Tournament removePlayerFromTeam(String tournamentName, UUID teamId, UUID playerId) {
+        Tournament current = byName.get(tournamentName.toLowerCase());
+        if (current == null) {
+            throw new IllegalArgumentException("Tournament not found: " + tournamentName);
+        }
+        if (current.state() != TournamentState.REGISTRATION) {
+            throw new IllegalStateException("Cannot remove players after registration closes");
+        }
+
+        List<Team> updatedTeams = new ArrayList<>();
+        for (Team team : current.teams()) {
+            if (team.id().equals(teamId)) {
+                updatedTeams.add(team.removePlayer(playerId));
+            } else {
+                updatedTeams.add(team);
+            }
+        }
+
+        Tournament updated = current.withTeams(updatedTeams);
+        byName.put(tournamentName.toLowerCase(), updated);
+        byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
+        return updated;
+    }
+
+    public Optional<Team> getTeamForPlayer(String tournamentName, UUID playerId) {
+        return getTournament(tournamentName)
+                .flatMap(t -> t.teams().stream()
+                        .filter(team -> team.hasPlayer(playerId))
+                        .findFirst());
+    }
+
+    public List<UUID> getPlayersInTeam(String tournamentName, UUID teamId) {
+        return getTournament(tournamentName)
+                .flatMap(t -> t.teams().stream()
+                        .filter(team -> team.id().equals(teamId))
+                        .findFirst())
+                .map(Team::playerIds)
+                .orElse(List.of());
+    }
+
+    public int getTeamPlayerCount(String tournamentName, UUID teamId) {
+        return getPlayersInTeam(tournamentName, teamId).size();
+    }
 }

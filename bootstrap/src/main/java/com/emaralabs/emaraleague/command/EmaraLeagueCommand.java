@@ -1,6 +1,7 @@
 package com.emaralabs.emaraleague.command;
 
 import com.emaralabs.emaraleague.core.tournament.BracketType;
+import com.emaralabs.emaraleague.core.tournament.Team;
 import com.emaralabs.emaraleague.core.tournament.Tournament;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
 import com.emaralabs.emaraleague.core.tournament.TournamentState;
@@ -13,6 +14,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
@@ -35,6 +38,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             new SubCommand("create", "/emaraleague create <name> <mode>", "Create a new tournament", "emaraleague.create"),
             new SubCommand("join", "/emaraleague join <tournament>", "Join a tournament", "emaraleague.play"),
             new SubCommand("leave", "/emaraleague leave", "Leave your current tournament", "emaraleague.play"),
+            new SubCommand("team", "/emaraleague team <join|leave|list>", "Manage teams", "emaraleague.play"),
             new SubCommand("start", "/emaraleague start <tournament>", "Start a tournament", "emaraleague.admin"),
             new SubCommand("info", "/emaraleague info <tournament>", "View tournament details", "emaraleague.use"),
             new SubCommand("help", "/emaraleague help", "Show this menu", "emaraleague.use"),
@@ -77,6 +81,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             case "create" -> handleCreate(sender, args);
             case "join" -> handleJoin(sender, args);
             case "leave" -> handleLeave(sender);
+            case "team" -> handleTeam(sender, args);
             case "start" -> handleStart(sender, args);
             case "info" -> handleInfo(sender, args);
             case "help" -> sendHelp(sender);
@@ -146,6 +151,98 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
     private void handleLeave(CommandSender sender) {
         sender.sendMessage(messages.get("tournament-left"));
+    }
+
+    private void handleTeam(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team <join|leave|list>")));
+            return;
+        }
+
+        switch (args[1].toLowerCase()) {
+            case "join" -> handleTeamJoin(sender, args);
+            case "leave" -> handleTeamLeave(sender);
+            case "list" -> handleTeamList(sender, args);
+            default -> sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team <join|leave|list>")));
+        }
+    }
+
+    private void handleTeamJoin(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+        if (args.length < 4) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team join <tournament> <team>")));
+            return;
+        }
+
+        String tournamentName = args[2];
+        String teamName = args[3];
+
+        Optional<Tournament> tournament = tournamentManager.getTournament(tournamentName);
+        if (tournament.isEmpty()) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", tournamentName)));
+            return;
+        }
+
+        Optional<Team> team = tournament.get().teams().stream()
+                .filter(t -> t.name().equalsIgnoreCase(teamName))
+                .findFirst();
+
+        if (team.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("Team not found: " + teamName));
+            return;
+        }
+
+        try {
+            tournamentManager.assignPlayerToTeam(tournamentName, team.get().id(), player.getUniqueId());
+            sender.sendMessage(MessageFormatter.success("You joined team " + team.get().name()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        }
+    }
+
+    private void handleTeamLeave(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+
+        // Find player's team across all tournaments
+        for (Tournament tournament : tournamentManager.getTournaments()) {
+            Optional<Team> team = tournamentManager.getTeamForPlayer(tournament.name(), player.getUniqueId());
+            if (team.isPresent()) {
+                tournamentManager.removePlayerFromTeam(tournament.name(), team.get().id(), player.getUniqueId());
+                sender.sendMessage(MessageFormatter.success("You left team " + team.get().name()));
+                return;
+            }
+        }
+
+        sender.sendMessage(MessageFormatter.error("You are not in any team."));
+    }
+
+    private void handleTeamList(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team list <tournament>")));
+            return;
+        }
+
+        String tournamentName = args[2];
+        Optional<Tournament> tournament = tournamentManager.getTournament(tournamentName);
+        if (tournament.isEmpty()) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", tournamentName)));
+            return;
+        }
+
+        sender.sendMessage(MessageFormatter.header("Teams in " + tournamentName));
+        for (Team team : tournament.get().teams()) {
+            Component line = Component.text()
+                    .append(Component.text("  " + team.name(), EmaraTheme.WARNING))
+                    .append(Component.text(" (" + team.getPlayerCount() + " players)", EmaraTheme.MUTED))
+                    .build();
+            sender.sendMessage(line);
+        }
     }
 
     private void handleStart(CommandSender sender, String[] args) {
@@ -226,13 +323,25 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (args[0].toLowerCase()) {
                 case "create" -> filterCompletions(List.of("<name>"), args[1]);
-                case "join", "start", "info" -> filterCompletions(getTournamentNames(), args[1]);
+                case "join", "start", "info", "team" -> filterCompletions(getTournamentNames(), args[1]);
                 default -> Collections.emptyList();
             };
         }
 
-        if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
-            return filterCompletions(GAME_MODES, args[2]);
+        if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("create")) {
+                return filterCompletions(GAME_MODES, args[2]);
+            }
+            if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("join")) {
+                return filterCompletions(getTournamentNames(), args[2]);
+            }
+            if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("list")) {
+                return filterCompletions(getTournamentNames(), args[2]);
+            }
+        }
+
+        if (args.length == 4 && args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("join")) {
+            return filterCompletions(getTeamNames(args[2]), args[3]);
         }
 
         return Collections.emptyList();
@@ -263,6 +372,14 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         return tournamentManager.getTournaments().stream()
                 .map(Tournament::name)
                 .toList();
+    }
+
+    private List<String> getTeamNames(String tournamentName) {
+        return tournamentManager.getTournament(tournamentName)
+                .map(t -> t.teams().stream()
+                        .map(Team::name)
+                        .toList())
+                .orElse(List.of());
     }
 
     private boolean hasPermission(CommandSender sender, String subCommand) {
