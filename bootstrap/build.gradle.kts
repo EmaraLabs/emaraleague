@@ -1,5 +1,6 @@
 plugins {
     java
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 java {
@@ -33,16 +34,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    failOnNoDiscoveredTests = false
 }
 
-tasks.jar {
+tasks.shadowJar {
     archiveFileName.set("EmaraLeague-${project.version}.jar")
-    manifest {
-        attributes(
-            "Main-Class" to "com.emaralabs.emaraleague.EmaraLeaguePlugin",
-            "Implementation-Title" to "EmaraLeague",
-            "Implementation-Version" to project.version
-        )
-    }
 }
