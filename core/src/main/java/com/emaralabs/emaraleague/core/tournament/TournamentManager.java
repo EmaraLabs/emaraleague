@@ -11,6 +11,22 @@ public final class TournamentManager {
 
     private final Map<String, Tournament> byName = new ConcurrentHashMap<>();
     private final Map<UUID, Tournament> byId = new ConcurrentHashMap<>();
+    private TournamentPersistence persistence;
+
+    public void setPersistence(TournamentPersistence persistence) {
+        this.persistence = persistence;
+    }
+
+    public void loadFromDatabase() {
+        if (persistence == null) {
+            return;
+        }
+        List<Tournament> loaded = persistence.findAll().join();
+        for (Tournament t : loaded) {
+            byName.put(t.name().toLowerCase(), t);
+            byId.put(t.id(), t);
+        }
+    }
 
     public Tournament createTournament(String name, String mode, BracketType bracketType) {
         if (byName.containsKey(name.toLowerCase())) {
@@ -19,6 +35,9 @@ public final class TournamentManager {
         Tournament tournament = new Tournament(name, mode, bracketType);
         byName.put(name.toLowerCase(), tournament);
         byId.put(tournament.id(), tournament);
+        if (persistence != null) {
+            persistence.save(tournament);
+        }
         return tournament;
     }
 
@@ -44,6 +63,9 @@ public final class TournamentManager {
         Tournament removed = byName.remove(name.toLowerCase());
         if (removed != null) {
             byId.remove(removed.id());
+            if (persistence != null) {
+                persistence.delete(removed.id());
+            }
             return true;
         }
         return false;
@@ -70,6 +92,9 @@ public final class TournamentManager {
         Tournament updated = current.withState(newState);
         byName.put(name.toLowerCase(), updated);
         byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
         return updated;
     }
 
@@ -95,6 +120,9 @@ public final class TournamentManager {
         Tournament updated = current.withTeams(updatedTeams);
         byName.put(tournamentName.toLowerCase(), updated);
         byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
         return updated;
     }
 
@@ -111,6 +139,9 @@ public final class TournamentManager {
         Tournament updated = current.withTeams(updatedTeams);
         byName.put(tournamentName.toLowerCase(), updated);
         byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
         return updated;
     }
 

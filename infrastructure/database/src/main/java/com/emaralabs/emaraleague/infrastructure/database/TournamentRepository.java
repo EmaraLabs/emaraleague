@@ -1,6 +1,7 @@
 package com.emaralabs.emaraleague.infrastructure.database;
 
 import com.emaralabs.emaraleague.core.tournament.Tournament;
+import com.emaralabs.emaraleague.core.tournament.TournamentPersistence;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TournamentRepository implements Repository<Tournament, UUID> {
+public class TournamentRepository implements Repository<Tournament, UUID>, TournamentPersistence {
 
     private final DatabaseManager databaseManager;
     private final ExecutorService executor;

@@ -7,6 +7,8 @@ import com.emaralabs.emaraleague.core.match.MatchEngine;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
+import com.emaralabs.emaraleague.infrastructure.database.DatabaseManager;
+import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
 import com.emaralabs.emaraleague.modules.duels.DuelsGameMode;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,11 +22,22 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
     private TeleportService teleportService;
     private MatchEngine matchEngine;
     private GameModeRegistry gameModeRegistry;
+    private DatabaseManager databaseManager;
+    private TournamentRepository tournamentRepository;
 
     @Override
     public void onEnable() {
         instance = this;
+
+        String dbPath = getDataFolder().getAbsolutePath() + "/emaraleague.db";
+        databaseManager = new DatabaseManager("jdbc:sqlite:" + dbPath, "", "");
+        databaseManager.initializeSchema();
+        tournamentRepository = new TournamentRepository(databaseManager);
+
         tournamentManager = new TournamentManager();
+        tournamentManager.setPersistence(tournamentRepository);
+        tournamentManager.loadFromDatabase();
+
         arenaManager = new ArenaManager();
         playerSessionManager = new PlayerSessionManager();
         teleportService = new TeleportService();
@@ -46,6 +59,12 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (tournamentRepository != null) {
+            tournamentRepository.shutdown();
+        }
+        if (databaseManager != null) {
+            databaseManager.close();
+        }
         getLogger().info("EmaraLeague disabled");
         instance = null;
     }
