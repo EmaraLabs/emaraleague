@@ -3,19 +3,17 @@ version: '1.0.0-SNAPSHOT'
 main: com.emaralabs.emaraleague.EmaraLeaguePlugin
 description: Premium Minecraft tournament and events engine
 api-version: '1.21'
-author: Haris
 authors: [Haris]
 website: https://emaralabs.com
 prefix: EmaraLeague
 load: STARTUP
-has-open-classloader: false
 
 commands:
   emaraleague:
     description: EmaraLeague tournament management
     aliases: [el, league]
     permission: emaraleague.use
-    usage: /emaraleague <create|join|leave|start|info|help>
+    usage: /emaraleague <create|join|leave|start|info|help|reload>
 
 permissions:
   emaraleague.use:
@@ -30,3 +28,6 @@ permissions:
   emaraleague.play:
     description: Allows joining tournaments
     default: true
+  emaraleague.reload:
+    description: Allows reloading configuration
+    default: op

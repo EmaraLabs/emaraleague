@@ -1,0 +1,36 @@
+# ──────────────────────────────────────────────────────────────────────
+# EmaraLeague — Customizable Messages
+# Format: MiniMessage (https://docs.advntr.dev/minimessage/format.html)
+# Placeholders: <name>, <mode>, <status>, <permission>, <usage>, <modes>
+# Placeholder values are inserted as plain text (tags are NOT parsed).
+# ──────────────────────────────────────────────────────────────────────
+
+prefix: "<bold><#FFD700>EmaraLeague</#FFD700></bold> <#E94560>»</#E94560> "
+
+# ── Permission & Error ──
+no-permission: "<#FF4444>You don't have permission <#555555>(</#555555><#555555><permission></#555555><#555555>)</#555555>"
+invalid-usage: "<#FF4444>Invalid usage. <#555555>Usage:</#555555> <#FFB800><usage></#FFB800>"
+unknown-command: "<#FF4444>Unknown command. Type <#FFB800>/emaraleague help</#FFB800> for a list of commands."
+invalid-tournament-name: "<#FF4444>Tournament name must be 3-24 characters, alphanumeric and underscores only.</#FF4444>"
+invalid-game-mode: "<#FF4444>Unknown game mode '</#FF4444><#FFFFFF><mode></#FFFFFF><#FF4444>'. Available: <#FFB800><modes></#FFB800>"
+player-only: "<#FF4444>This command can only be used by players.</#FF4444>"
+
+# ── Tournament Actions ──
+tournament-created: "<#00D26A>Tournament '</#00D26A><#FFFFFF><name></#FFFFFF><#00D26A>' created successfully.</#00D26A>"
+tournament-joined: "<#00D26A>You have joined tournament '</#00D26A><#FFFFFF><name></#FFFFFF><#00D26A>'.</#00D26A>"
+tournament-left: "<#00D26A>You have left the tournament.</#00D26A>"
+tournament-started: "<#00D26A>Tournament '</#00D26A><#FFFFFF><name></#FFFFFF><#00D26A>' has started!</#00D26A>"
+tournament-info: "<#4FC3F7>Tournament: </#4FC3F7><#FFFFFF><name></#FFFFFF> <#555555>|</#555555> <#4FC3F7>Mode: </#4FC3F7><#FFFFFF><mode></#FFFFFF> <#555555>|</#555555> <#4FC3F7>Status: </#4FC3F7><#FFFFFF><status></#FFFFFF>"
+tournament-not-found: "<#FF4444>Tournament '</#FF4444><#FFFFFF><name></#FFFFFF><#FF4444>' not found.</#FF4444>"
+
+# ── Help Menu ──
+help-header: "<bold><#FFD700>EmaraLeague Commands</#FFD700></bold>"
+help-create: '<#FFB800>/emaraleague create \<name\> \<mode\></#FFB800> <#555555>—</#555555> <#4FC3F7>Create a new tournament</#4FC3F7>'
+help-join: '<#FFB800>/emaraleague join \<tournament\></#FFB800> <#555555>—</#555555> <#4FC3F7>Join a tournament</#4FC3F7>'
+help-leave: '<#FFB800>/emaraleague leave</#FFB800> <#555555>—</#555555> <#4FC3F7>Leave your current tournament</#4FC3F7>'
+help-start: '<#FFB800>/emaraleague start \<tournament\></#FFB800> <#555555>—</#555555> <#4FC3F7>Start a tournament (admin)</#4FC3F7>'
+help-info: '<#FFB800>/emaraleague info \<tournament\></#FFB800> <#555555>—</#555555> <#4FC3F7>View tournament details</#4FC3F7>'
+help-help: "<#FFB800>/emaraleague help</#FFB800> <#555555>—</#555555> <#4FC3F7>Show this menu</#4FC3F7>"
+
+# ── Admin ──
+reload-success: "<#00D26A>Configuration reloaded successfully.</#00D26A>"

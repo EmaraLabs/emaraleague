@@ -1,5 +1,14 @@
 package com.emaralabs.emaraleague.command;
 
+import com.emaralabs.emaraleague.core.tournament.BracketType;
+import com.emaralabs.emaraleague.core.tournament.Tournament;
+import com.emaralabs.emaraleague.core.tournament.TournamentManager;
+import com.emaralabs.emaraleague.core.tournament.TournamentState;
+import com.emaralabs.emaraleague.core.ui.EmaraTheme;
+import com.emaralabs.emaraleague.core.ui.InputValidator;
+import com.emaralabs.emaraleague.core.ui.MessageFormatter;
+import com.emaralabs.emaraleague.core.ui.MessageRegistry;
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -7,14 +16,35 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
     private final Plugin plugin;
+    private final MessageRegistry messages;
+    private final TournamentManager tournamentManager;
 
-    public EmaraLeagueCommand(Plugin plugin) {
+    private static final List<String> GAME_MODES = List.of(
+            "duels", "spleef", "sumo", "tnt-run", "parkour", "capture-the-flag"
+    );
+
+    private static final List<SubCommand> SUB_COMMANDS = List.of(
+            new SubCommand("create", "/emaraleague create <name> <mode>", "Create a new tournament", "emaraleague.create"),
+            new SubCommand("join", "/emaraleague join <tournament>", "Join a tournament", "emaraleague.play"),
+            new SubCommand("leave", "/emaraleague leave", "Leave your current tournament", "emaraleague.play"),
+            new SubCommand("start", "/emaraleague start <tournament>", "Start a tournament", "emaraleague.admin"),
+            new SubCommand("info", "/emaraleague info <tournament>", "View tournament details", "emaraleague.use"),
+            new SubCommand("help", "/emaraleague help", "Show this menu", "emaraleague.use"),
+            new SubCommand("reload", "/emaraleague reload", "Reload configuration", "emaraleague.admin")
+    );
+
+    public EmaraLeagueCommand(Plugin plugin, TournamentManager tournamentManager) {
         this.plugin = plugin;
+        this.tournamentManager = tournamentManager;
+        this.messages = new MessageRegistry(plugin);
     }
 
     public String getName() {
@@ -32,50 +62,207 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("EmaraLeague v1.0 - Use /emaraleague help");
+            sendHelp(sender);
             return true;
         }
 
-        if (!hasPermission(sender, args[0])) {
-            sender.sendMessage("You don't have permission to use this command.");
+        String sub = args[0].toLowerCase();
+
+        if (!hasPermission(sender, sub)) {
+            sender.sendMessage(messages.get("no-permission", Map.of("permission", "emaraleague." + sub)));
             return true;
         }
 
-        switch (args[0].toLowerCase()) {
-            case "create" -> {
-                if (args.length < 3) {
-                    sender.sendMessage("Usage: /emaraleague create <name> <mode>");
-                    return true;
-                }
-                sender.sendMessage("Creating tournament: " + args[1]);
-            }
-            case "join" -> {
-                if (args.length < 2) {
-                    sender.sendMessage("Usage: /emaraleague join <tournament>");
-                    return true;
-                }
-                sender.sendMessage("Joining tournament: " + args[1]);
-            }
-            case "leave" -> sender.sendMessage("Leaving tournament");
-            case "start" -> {
-                if (args.length < 2) {
-                    sender.sendMessage("Usage: /emaraleague start <tournament>");
-                    return true;
-                }
-                sender.sendMessage("Starting tournament: " + args[1]);
-            }
-            case "info" -> {
-                if (args.length < 2) {
-                    sender.sendMessage("Usage: /emaraleague info <tournament>");
-                    return true;
-                }
-                sender.sendMessage("Tournament info: " + args[1]);
-            }
-            case "help" -> sender.sendMessage("Help menu");
-            default -> sender.sendMessage("Unknown command. Use /emaraleague help");
+        switch (sub) {
+            case "create" -> handleCreate(sender, args);
+            case "join" -> handleJoin(sender, args);
+            case "leave" -> handleLeave(sender);
+            case "start" -> handleStart(sender, args);
+            case "info" -> handleInfo(sender, args);
+            case "help" -> sendHelp(sender);
+            case "reload" -> handleReload(sender);
+            default -> sender.sendMessage(messages.get("unknown-command"));
         }
 
         return true;
+    }
+
+    private void handleCreate(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague create <name> <mode>")));
+            return;
+        }
+
+        String name = args[1];
+        String mode = args[2].toLowerCase();
+
+        var nameResult = InputValidator.validateTournamentName(name);
+        if (!nameResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        var modeResult = InputValidator.validateGameMode(mode);
+        if (!modeResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(modeResult.getErrorMessage()));
+            return;
+        }
+
+        if (!GAME_MODES.contains(mode)) {
+            sender.sendMessage(messages.get("invalid-game-mode", Map.of(
+                    "mode", mode,
+                    "modes", String.join(", ", GAME_MODES))));
+            return;
+        }
+
+        try {
+            tournamentManager.createTournament(name, mode, BracketType.SINGLE_ELIMINATION);
+            sender.sendMessage(messages.get("tournament-created", Map.of("name", name)));
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        }
+    }
+
+    private void handleJoin(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague join <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        var nameResult = InputValidator.validateTournamentName(name);
+        if (!nameResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        if (!tournamentManager.exists(name)) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+            return;
+        }
+
+        sender.sendMessage(messages.get("tournament-joined", Map.of("name", name)));
+    }
+
+    private void handleLeave(CommandSender sender) {
+        sender.sendMessage(messages.get("tournament-left"));
+    }
+
+    private void handleStart(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague start <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        var nameResult = InputValidator.validateTournamentName(name);
+        if (!nameResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        try {
+            tournamentManager.transitionState(name, TournamentState.STARTING);
+            sender.sendMessage(messages.get("tournament-started", Map.of("name", name)));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        }
+    }
+
+    private void handleInfo(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague info <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        var nameResult = InputValidator.validateTournamentName(name);
+        if (!nameResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        Optional<Tournament> tournament = tournamentManager.getTournament(name);
+        if (tournament.isEmpty()) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+            return;
+        }
+
+        Tournament t = tournament.get();
+        sender.sendMessage(messages.get("tournament-info", Map.of(
+                "name", t.name(),
+                "mode", t.mode(),
+                "status", t.state().name()
+        )));
+    }
+
+    private void handleReload(CommandSender sender) {
+        messages.reload();
+        sender.sendMessage(messages.get("reload-success"));
+    }
+
+    private void sendHelp(CommandSender sender) {
+        sender.sendMessage(messages.get("help-header"));
+        sender.sendMessage(Component.empty());
+
+        for (SubCommand sub : SUB_COMMANDS) {
+            if (sender.hasPermission(sub.permission) || sender.hasPermission("emaraleague.admin")) {
+                Component line = Component.text()
+                        .append(Component.text("  " + sub.usage, EmaraTheme.WARNING))
+                        .append(Component.text(" — ", EmaraTheme.MUTED))
+                        .append(Component.text(sub.description, EmaraTheme.INFO))
+                        .build();
+                sender.sendMessage(line);
+            }
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 1) {
+            return filterCompletions(getVisibleSubCommands(sender), args[0]);
+        }
+
+        if (args.length == 2) {
+            return switch (args[0].toLowerCase()) {
+                case "create" -> filterCompletions(List.of("<name>"), args[1]);
+                case "join", "start", "info" -> filterCompletions(getTournamentNames(), args[1]);
+                default -> Collections.emptyList();
+            };
+        }
+
+        if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
+            return filterCompletions(GAME_MODES, args[2]);
+        }
+
+        return Collections.emptyList();
+    }
+
+    private List<String> filterCompletions(List<String> options, String input) {
+        String lower = input.toLowerCase();
+        List<String> result = new ArrayList<>();
+        for (String option : options) {
+            if (option.toLowerCase().startsWith(lower)) {
+                result.add(option);
+            }
+        }
+        return result;
+    }
+
+    private List<String> getVisibleSubCommands(CommandSender sender) {
+        List<String> visible = new ArrayList<>();
+        for (SubCommand sub : SUB_COMMANDS) {
+            if (sender.hasPermission(sub.permission) || sender.hasPermission("emaraleague.admin")) {
+                visible.add(sub.name);
+            }
+        }
+        return visible;
+    }
+
+    private List<String> getTournamentNames() {
+        return tournamentManager.getTournaments().stream()
+                .map(Tournament::name)
+                .toList();
     }
 
     private boolean hasPermission(CommandSender sender, String subCommand) {
@@ -83,11 +270,9 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         return sender.hasPermission(permission) || sender.hasPermission("emaraleague.admin");
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 1) {
-            return List.of("create", "join", "leave", "start", "info", "help");
-        }
-        return new ArrayList<>();
+    public MessageRegistry getMessages() {
+        return messages;
     }
+
+    private record SubCommand(String name, String usage, String description, String permission) {}
 }
