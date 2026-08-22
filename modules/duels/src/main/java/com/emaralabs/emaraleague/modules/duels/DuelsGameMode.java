@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public class DuelsGameMode implements GameMode {
     private final Map<UUID, Integer> playerKills = new HashMap<>();
     private final Map<UUID, Integer> playerDeaths = new HashMap<>();
     private final Set<UUID> eliminated = new HashSet<>();
+    private final Map<UUID, UUID> playerToTeam = new HashMap<>();
 
     @Override
     public String getId() {
@@ -50,6 +52,7 @@ public class DuelsGameMode implements GameMode {
         playerKills.clear();
         playerDeaths.clear();
         eliminated.clear();
+        playerToTeam.clear();
     }
 
     @Override
@@ -61,6 +64,7 @@ public class DuelsGameMode implements GameMode {
         playerKills.clear();
         playerDeaths.clear();
         eliminated.clear();
+        playerToTeam.clear();
     }
 
     @Override
@@ -96,5 +100,19 @@ public class DuelsGameMode implements GameMode {
 
     public int getDeaths(UUID playerId) {
         return playerDeaths.getOrDefault(playerId, 0);
+    }
+
+    public void assignPlayerToTeam(UUID playerId, UUID teamId) {
+        playerToTeam.put(playerId, teamId);
+    }
+
+    public Optional<UUID> getTeamForPlayer(UUID playerId) {
+        return Optional.ofNullable(playerToTeam.get(playerId));
+    }
+
+    public boolean isTeamEliminated(UUID teamId) {
+        return playerToTeam.entrySet().stream()
+                .filter(e -> e.getValue().equals(teamId))
+                .allMatch(e -> eliminated.contains(e.getKey()));
     }
 }

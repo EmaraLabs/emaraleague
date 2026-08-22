@@ -1,6 +1,7 @@
 package com.emaralabs.emaraleague.listener;
 
 import com.emaralabs.emaraleague.core.match.MatchEngine;
+import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.ui.MessageRegistry;
 import org.bukkit.entity.Player;
@@ -16,11 +17,13 @@ public final class PlayerEventListener implements Listener {
     private final MatchEngine matchEngine;
     private final PlayerSessionManager sessions;
     private final MessageRegistry messages;
+    private final WinConditionEvaluator winEvaluator;
 
-    public PlayerEventListener(MatchEngine matchEngine, PlayerSessionManager sessions, MessageRegistry messages) {
+    public PlayerEventListener(MatchEngine matchEngine, PlayerSessionManager sessions, MessageRegistry messages, WinConditionEvaluator winEvaluator) {
         this.matchEngine = matchEngine;
         this.sessions = sessions;
         this.messages = messages;
+        this.winEvaluator = winEvaluator;
     }
 
     @EventHandler
@@ -42,5 +45,7 @@ public final class PlayerEventListener implements Listener {
             return;
         }
         sessions.clearMatch(playerId);
+
+        winEvaluator.isMatchOver(null, null);
     }
 }

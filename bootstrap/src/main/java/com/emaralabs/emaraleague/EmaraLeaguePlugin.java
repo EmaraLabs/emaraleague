@@ -3,8 +3,11 @@ package com.emaralabs.emaraleague;
 import com.emaralabs.emaraleague.command.EmaraLeagueCommand;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
+import com.emaralabs.emaraleague.core.match.MatchCountdown;
 import com.emaralabs.emaraleague.core.match.MatchEngine;
+import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
+import com.emaralabs.emaraleague.core.scheduler.PaperScheduler;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
 import com.emaralabs.emaraleague.infrastructure.database.DatabaseManager;
@@ -24,6 +27,8 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
     private GameModeRegistry gameModeRegistry;
     private DatabaseManager databaseManager;
     private TournamentRepository tournamentRepository;
+    private WinConditionEvaluator winConditionEvaluator;
+    private MatchCountdown matchCountdown;
 
     @Override
     public void onEnable() {
@@ -43,15 +48,18 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
         teleportService = new TeleportService();
         matchEngine = new MatchEngine(tournamentManager, arenaManager);
         gameModeRegistry = new GameModeRegistry();
+        winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
+        matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
 
         gameModeRegistry.register(new DuelsGameMode());
         matchEngine.setGameModeRegistry(gameModeRegistry);
+        matchEngine.setCountdown(matchCountdown);
 
         EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager);
         getCommand("emaraleague").setExecutor(command);
         getCommand("emaraleague").setTabCompleter(command);
 
-        PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages());
+        PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator);
         getServer().getPluginManager().registerEvents(listener, this);
 
         getLogger().info("EmaraLeague enabled");

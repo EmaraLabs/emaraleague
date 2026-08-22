@@ -19,6 +19,7 @@ public final class MatchEngine {
     private final Map<UUID, Match> matches = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> matchToTournament = new ConcurrentHashMap<>();
     private GameModeRegistry gameModeRegistry;
+    private MatchCountdown countdown;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -27,6 +28,10 @@ public final class MatchEngine {
 
     public void setGameModeRegistry(GameModeRegistry registry) {
         this.gameModeRegistry = registry;
+    }
+
+    public void setCountdown(MatchCountdown countdown) {
+        this.countdown = countdown;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -52,6 +57,10 @@ public final class MatchEngine {
             UUID tournamentId = matchToTournament.get(matchId);
             tournaments.getTournament(tournamentId).ifPresent(t ->
                     gameModeRegistry.getMode(t.mode()).ifPresent(mode -> mode.onMatchStart(updated)));
+        }
+
+        if (countdown != null) {
+            countdown.startCountdown(updated, 10, () -> beginPlay(matchId));
         }
 
         return updated;

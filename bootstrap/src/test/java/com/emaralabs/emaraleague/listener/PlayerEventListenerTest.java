@@ -1,6 +1,7 @@
 package com.emaralabs.emaraleague.listener;
 
 import com.emaralabs.emaraleague.core.match.MatchEngine;
+import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.ui.MessageRegistry;
 import org.bukkit.entity.Player;
@@ -19,6 +20,7 @@ class PlayerEventListenerTest {
     private MatchEngine matchEngine;
     private PlayerSessionManager sessions;
     private MessageRegistry messages;
+    private WinConditionEvaluator winEvaluator;
     private PlayerEventListener listener;
 
     @BeforeEach
@@ -26,7 +28,8 @@ class PlayerEventListenerTest {
         matchEngine = mock(MatchEngine.class);
         sessions = new PlayerSessionManager();
         messages = mock(MessageRegistry.class);
-        listener = new PlayerEventListener(matchEngine, sessions, messages);
+        winEvaluator = mock(WinConditionEvaluator.class);
+        listener = new PlayerEventListener(matchEngine, sessions, messages, winEvaluator);
     }
 
     @Test
@@ -114,5 +117,22 @@ class PlayerEventListenerTest {
 
         listener.onPlayerQuit(event);
         // No exception
+    }
+
+    @Test
+    void onPlayerDeath_inMatch_triggersWinCheck() {
+        UUID playerId = UUID.randomUUID();
+        UUID teamId = UUID.randomUUID();
+        sessions.createSession(playerId, "Steve");
+        sessions.assignToTeam(playerId, teamId);
+
+        EntityDeathEvent event = mock(EntityDeathEvent.class);
+        Player player = mock(Player.class);
+        when(event.getEntity()).thenReturn(player);
+        when(player.getUniqueId()).thenReturn(playerId);
+
+        listener.onPlayerDeath(event);
+
+        verify(winEvaluator).isMatchOver(any(), any());
     }
 }
