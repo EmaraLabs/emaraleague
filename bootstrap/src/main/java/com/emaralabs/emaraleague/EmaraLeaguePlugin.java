@@ -35,36 +35,42 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        String dbPath = getDataFolder().getAbsolutePath() + "/emaraleague.db";
-        databaseManager = new DatabaseManager("jdbc:sqlite:" + dbPath, "", "");
-        databaseManager.initializeSchema();
-        tournamentRepository = new TournamentRepository(databaseManager);
+        try {
+            String dbPath = getDataFolder().getAbsolutePath() + "/emaraleague.db";
+            databaseManager = new DatabaseManager("jdbc:sqlite:" + dbPath, "", "");
+            databaseManager.initializeSchema();
+            tournamentRepository = new TournamentRepository(databaseManager);
 
-        tournamentManager = new TournamentManager();
-        tournamentManager.setPersistence(tournamentRepository);
-        tournamentManager.loadFromDatabase();
+            tournamentManager = new TournamentManager();
+            tournamentManager.setPersistence(tournamentRepository);
+            tournamentManager.loadFromDatabase();
 
-        arenaManager = new ArenaManager();
-        playerSessionManager = new PlayerSessionManager();
-        teleportService = new TeleportService();
-        matchEngine = new MatchEngine(tournamentManager, arenaManager);
-        gameModeRegistry = new GameModeRegistry();
-        winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
-        matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
+            arenaManager = new ArenaManager();
+            playerSessionManager = new PlayerSessionManager();
+            teleportService = new TeleportService();
+            matchEngine = new MatchEngine(tournamentManager, arenaManager);
+            gameModeRegistry = new GameModeRegistry();
+            winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
+            matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
 
-        gameModeRegistry.register(new DuelsGameMode());
-        gameModeRegistry.register(new SpleefGameMode());
-        matchEngine.setGameModeRegistry(gameModeRegistry);
-        matchEngine.setCountdown(matchCountdown);
+            gameModeRegistry.register(new DuelsGameMode());
+            gameModeRegistry.register(new SpleefGameMode());
+            matchEngine.setGameModeRegistry(gameModeRegistry);
+            matchEngine.setCountdown(matchCountdown);
 
-        EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager, arenaManager);
-        getCommand("emaraleague").setExecutor(command);
-        getCommand("emaraleague").setTabCompleter(command);
+            EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager, arenaManager);
+            getCommand("emaraleague").setExecutor(command);
+            getCommand("emaraleague").setTabCompleter(command);
 
-        PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator);
-        getServer().getPluginManager().registerEvents(listener, this);
+            PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator);
+            getServer().getPluginManager().registerEvents(listener, this);
 
-        getLogger().info("EmaraLeague enabled");
+            getLogger().info("EmaraLeague enabled");
+        } catch (Exception e) {
+            getLogger().severe("Failed to enable EmaraLeague: " + e.getMessage());
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+        }
     }
 
     @Override

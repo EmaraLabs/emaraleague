@@ -57,6 +57,7 @@ tasks.shadowJar {
     relocate("org.spongepowered.configurate", "com.emaralabs.emaraleague.libs.configurate")
     relocate("io.leangen.geantyref", "com.emaralabs.emaraleague.libs.geantyref")
     relocate("org.slf4j", "com.emaralabs.emaraleague.libs.slf4j")
+    relocate("org.apache.commons.logging", "com.emaralabs.emaraleague.libs.commonslogging")
 
     mergeServiceFiles()
 }
