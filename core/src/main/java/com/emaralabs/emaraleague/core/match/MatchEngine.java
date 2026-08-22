@@ -3,6 +3,7 @@ package com.emaralabs.emaraleague.core.match;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.bracket.Bracket;
 import com.emaralabs.emaraleague.core.bracket.BracketGenerator;
+import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.tournament.*;
 
 import java.util.List;
@@ -17,10 +18,15 @@ public final class MatchEngine {
     private final ArenaManager arenas;
     private final Map<UUID, Match> matches = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> matchToTournament = new ConcurrentHashMap<>();
+    private GameModeRegistry gameModeRegistry;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
         this.arenas = arenas;
+    }
+
+    public void setGameModeRegistry(GameModeRegistry registry) {
+        this.gameModeRegistry = registry;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -41,6 +47,13 @@ public final class MatchEngine {
         validateMatchTransition(match.state(), MatchState.STARTING);
         Match updated = match.withState(MatchState.STARTING);
         matches.put(matchId, updated);
+
+        if (gameModeRegistry != null) {
+            UUID tournamentId = matchToTournament.get(matchId);
+            tournaments.getTournament(tournamentId).ifPresent(t ->
+                    gameModeRegistry.getMode(t.mode()).ifPresent(mode -> mode.onMatchStart(updated)));
+        }
+
         return updated;
     }
 
@@ -63,6 +76,13 @@ public final class MatchEngine {
         validateMatchTransition(match.state(), MatchState.ENDED);
         Match updated = match.withWinner(winner);
         matches.put(matchId, updated);
+
+        if (gameModeRegistry != null) {
+            UUID tournamentId = matchToTournament.get(matchId);
+            tournaments.getTournament(tournamentId).ifPresent(t ->
+                    gameModeRegistry.getMode(t.mode()).ifPresent(mode -> mode.onMatchEnd(updated, winner)));
+        }
+
         return updated;
     }
 

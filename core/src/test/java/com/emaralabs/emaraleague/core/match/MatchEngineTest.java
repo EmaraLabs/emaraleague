@@ -3,6 +3,7 @@ package com.emaralabs.emaraleague.core.match;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.bracket.Bracket;
 import com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket;
+import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.tournament.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class MatchEngineTest {
 
@@ -238,5 +240,56 @@ class MatchEngineTest {
         }
 
         assertTrue(engine.getNextMatch("Cup").isEmpty());
+    }
+
+    // ── GameMode Dispatch ───────────────────────────────────────────
+
+    @Test
+    void startMatch_callsGameModeOnMatchStart() {
+        GameModeRegistry registry = new GameModeRegistry();
+        com.emaralabs.emaraleague.core.game.GameMode mockMode = mock(com.emaralabs.emaraleague.core.game.GameMode.class);
+        when(mockMode.getId()).thenReturn("duels");
+        registry.register(mockMode);
+        engine.setGameModeRegistry(registry);
+
+        tournaments.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Match match = engine.createMatch("Cup", new Team("Alpha", 1), new Team("Beta", 2));
+        engine.startMatch(match.id());
+
+        verify(mockMode).onMatchStart(any(Match.class));
+    }
+
+    @Test
+    void endMatch_callsGameModeOnMatchEnd() {
+        GameModeRegistry registry = new GameModeRegistry();
+        com.emaralabs.emaraleague.core.game.GameMode mockMode = mock(com.emaralabs.emaraleague.core.game.GameMode.class);
+        when(mockMode.getId()).thenReturn("duels");
+        registry.register(mockMode);
+        engine.setGameModeRegistry(registry);
+
+        tournaments.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Match match = engine.createMatch("Cup", new Team("Alpha", 1), new Team("Beta", 2));
+        engine.startMatch(match.id());
+        engine.beginPlay(match.id());
+        engine.endMatch(match.id(), new Team("Alpha", 1));
+
+        verify(mockMode).onMatchEnd(any(Match.class), any(Team.class));
+    }
+
+    @Test
+    void startMatch_noRegistry_doesNotThrow() {
+        tournaments.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Match match = engine.createMatch("Cup", new Team("Alpha", 1), new Team("Beta", 2));
+        assertDoesNotThrow(() -> engine.startMatch(match.id()));
+    }
+
+    @Test
+    void startMatch_modeNotFound_doesNotThrow() {
+        GameModeRegistry registry = new GameModeRegistry();
+        engine.setGameModeRegistry(registry);
+
+        tournaments.createTournament("Cup", "duels", BracketType.SINGLE_ELIMINATION);
+        Match match = engine.createMatch("Cup", new Team("Alpha", 1), new Team("Beta", 2));
+        assertDoesNotThrow(() -> engine.startMatch(match.id()));
     }
 }

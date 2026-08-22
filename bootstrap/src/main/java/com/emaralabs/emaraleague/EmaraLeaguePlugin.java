@@ -2,11 +2,13 @@ package com.emaralabs.emaraleague;
 
 import com.emaralabs.emaraleague.command.EmaraLeagueCommand;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
+import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.match.MatchEngine;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
+import com.emaralabs.emaraleague.modules.duels.DuelsGameMode;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class EmaraLeaguePlugin extends JavaPlugin {
@@ -17,6 +19,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
     private PlayerSessionManager playerSessionManager;
     private TeleportService teleportService;
     private MatchEngine matchEngine;
+    private GameModeRegistry gameModeRegistry;
 
     @Override
     public void onEnable() {
@@ -26,6 +29,10 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
         playerSessionManager = new PlayerSessionManager();
         teleportService = new TeleportService();
         matchEngine = new MatchEngine(tournamentManager, arenaManager);
+        gameModeRegistry = new GameModeRegistry();
+
+        gameModeRegistry.register(new DuelsGameMode());
+        matchEngine.setGameModeRegistry(gameModeRegistry);
 
         EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager);
         getCommand("emaraleague").setExecutor(command);
@@ -65,5 +72,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
     public MatchEngine getMatchEngine() {
         return matchEngine;
+    }
+
+    public GameModeRegistry getGameModeRegistry() {
+        return gameModeRegistry;
     }
 }

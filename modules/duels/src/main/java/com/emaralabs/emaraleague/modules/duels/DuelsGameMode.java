@@ -9,7 +9,9 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class DuelsGameMode implements GameMode {
@@ -21,6 +23,7 @@ public class DuelsGameMode implements GameMode {
 
     private final Map<UUID, Integer> playerKills = new HashMap<>();
     private final Map<UUID, Integer> playerDeaths = new HashMap<>();
+    private final Set<UUID> eliminated = new HashSet<>();
 
     @Override
     public String getId() {
@@ -46,6 +49,7 @@ public class DuelsGameMode implements GameMode {
     public void onMatchStart(Match match) {
         playerKills.clear();
         playerDeaths.clear();
+        eliminated.clear();
     }
 
     @Override
@@ -56,6 +60,7 @@ public class DuelsGameMode implements GameMode {
     public void onMatchEnd(Match match, Team winner) {
         playerKills.clear();
         playerDeaths.clear();
+        eliminated.clear();
     }
 
     @Override
@@ -65,13 +70,24 @@ public class DuelsGameMode implements GameMode {
 
     public void onPlayerDeath(EntityDeathEvent event) {
         if (event.getEntity() instanceof Player player) {
-            playerDeaths.merge(player.getUniqueId(), 1, Integer::sum);
+            UUID id = player.getUniqueId();
+            playerDeaths.merge(id, 1, Integer::sum);
+            eliminated.add(id);
         }
     }
 
     public void onPlayerQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        playerDeaths.merge(player.getUniqueId(), 1, Integer::sum);
+        UUID id = event.getPlayer().getUniqueId();
+        playerDeaths.merge(id, 1, Integer::sum);
+        eliminated.add(id);
+    }
+
+    public boolean isEliminated(UUID playerId) {
+        return eliminated.contains(playerId);
+    }
+
+    public int getAliveCount(Match match) {
+        return 2 - eliminated.size();
     }
 
     public int getKills(UUID playerId) {
