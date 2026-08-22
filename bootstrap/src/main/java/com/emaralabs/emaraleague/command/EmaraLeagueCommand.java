@@ -153,6 +153,16 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+
+        if (tournamentManager.getTeamForPlayer(name, player.getUniqueId()).isPresent()) {
+            sender.sendMessage(MessageFormatter.error("You are already in this tournament."));
+            return;
+        }
+
         sender.sendMessage(messages.get("tournament-joined", Map.of("name", name)));
     }
 
@@ -268,8 +278,10 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         try {
             tournamentManager.transitionState(name, TournamentState.STARTING);
             sender.sendMessage(messages.get("tournament-started", Map.of("name", name)));
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (IllegalArgumentException e) {
             sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+            sender.sendMessage(MessageFormatter.error("Tournament cannot be started in its current state."));
         }
     }
 
