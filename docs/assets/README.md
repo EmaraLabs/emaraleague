@@ -1,50 +1,111 @@
-# EmaraLeague — Asset Generation Guide
+# EmaraLeague — Premium Asset Generation Guide
 
 ## 📋 Quick Reference
 
-| Asset | File | Prompt Count |
-|-------|------|--------------|
-| **Logo** | `logo-prompt.md` | 3 prompts |
-| **Icon** | `icon-prompt.md` | 3 prompts |
-| **Banner** | `banner-prompt.md` | 3 prompts |
-| **Screenshots** | `screenshot-prompt.md` | 6 prompts |
-| **Thumbnails** | `thumbnail-prompt.md` | 3 prompts |
-| **Website** | `website-prompt.md` | 4 prompts |
+| Asset | File | Prompt Count | Style |
+|-------|------|--------------|-------|
+| **Logo** | `logo-prompt.md` | 3 | Luxury, Cinematic, Regal |
+| **Icon** | `icon-prompt.md` | 3 | Pixel-art with depth |
+| **Banner** | `banner-prompt.md` | 3 | Cinematic, Epic |
+| **Screenshots** | `screenshot-prompt.md` | 6 | Championship, Dramatic |
+| **Thumbnails** | `thumbnail-prompt.md` | 3 | Cinematic, Premium |
+| **Website** | `website-prompt.md` | 4 | Luxury, Sophisticated |
 
-**Total:** 22 prompts ready to use
-
----
-
-## 🚀 How to Generate Assets
-
-### Step 1: Choose Your Tool
-- **ChatGPT (DALL-E):** Best for quick, decent quality
-- **Midjourney:** Best for high-quality, artistic
-- **Stable Diffusion:** Best for customization
-
-### Step 2: Copy Prompt
-- Open the `.md` file for the asset you need
-- Copy the prompt (triple backticks section)
-
-### Step 3: Generate
-- Paste into your chosen tool
-- Generate 4 variations
-- Pick the best one
-
-### Step 4: Download & Use
-- Download at highest resolution
-- Use for marketing materials
+**Total:** 22 premium prompts
 
 ---
 
-## 🎨 Brand Colors Reference
+## 🎨 Key Design Elements
 
+### Trophy
+- Ornate, detailed, golden
+- Engravings and texture
+- Photorealistic rendering
+- Not flat or minimalist
+
+### Crown
+- Intricate design
+- Emerald accents
+- Integrated with trophy
+- Regal, sophisticated
+
+### Colors
 ```
-Primary Dark:    #0A0A0F
-Primary Indigo:  #6366F1
-Accent Emerald:  #10B981
-Text Light:      #F9FAFB
+Primary Dark:    #0A0A0F (Obsidian)
+Primary Indigo:  #6366F1 (Metallic)
+Accent Emerald:  #10B981 (Jewel)
+Gold:            #FFD700 (Trophy)
+Text Light:      #F9FAFB (White)
 ```
+
+### Style Keywords
+- Cinematic
+- Photorealistic
+- Luxury
+- Premium
+- Sophisticated
+- Championship
+- Exclusive
+- Rich detail
+- Depth of field
+- Particle effects
+
+---
+
+## 🚫 What to Avoid
+
+- Flat design
+- Minimalist
+- Cartoonish
+- Childish
+- Generic
+- AI-slop
+- Cliche
+- Simple/clean (too plain)
+
+---
+
+## 💡 Pro Tips
+
+### For Midjourney
+```
+Add these to every prompt:
+--v 6 (latest version)
+--ar [ratio] (aspect ratio)
+--q 2 (highest quality)
+--style raw (for photorealism)
+```
+
+### For DALL-E 3
+```
+Add these to every prompt:
+- "8K quality"
+- "hyper-detailed"
+- "cinematic lighting"
+- "photorealistic"
+```
+
+### For Stable Diffusion
+```
+Use these keywords:
+- masterpiece, best quality
+- ultra-detailed
+- cinematic lighting
+- 8k resolution
+- photorealistic
+```
+
+---
+
+## 🔗 Recommended Tools
+
+| Tool | Best For | Link |
+|------|----------|------|
+| **Midjourney** | Cinematic, photorealistic | midjourney.com |
+| **DALL-E 3** | Quick, decent quality | openai.com |
+| **Stable Diffusion** | Customization | stability.ai |
+| **Remove.bg** | Transparency | remove.bg |
+| **Canva** | Editing, text | canva.com |
 
 ---
 
@@ -52,34 +113,15 @@ Text Light:      #F9FAFB
 
 ```
 docs/assets/
-├── logo-prompt.md          # Logo prompts (3)
-├── icon-prompt.md          # Icon prompts (3)
-├── banner-prompt.md        # Banner prompts (3)
-├── screenshot-prompt.md    # Screenshot prompts (6)
-├── thumbnail-prompt.md     # Thumbnail prompts (3)
-├── website-prompt.md       # Website prompts (4)
-└── README.md               # This file
+├── logo-prompt.md          # 3 luxury logo prompts
+├── icon-prompt.md          # 3 premium icon prompts
+├── banner-prompt.md        # 3 cinematic banner prompts
+├── screenshot-prompt.md    # 6 championship screenshot prompts
+├── thumbnail-prompt.md     # 3 premium thumbnail prompts
+├── website-prompt.md       # 4 luxury website prompts
+└── README.md               # This guide
 ```
 
 ---
 
-## 💡 Pro Tips
-
-1. **Consistency:** Use the same colors and style across all assets
-2. **Quality:** Generate at highest resolution, downscale if needed
-3. **Variations:** Generate multiple versions, pick the best
-4. **Testing:** Test assets at actual size before finalizing
-5. **Backup:** Save all generated assets in a folder
-
----
-
-## 🔗 Useful Links
-
-- **DALL-E:** https://openai.com/dall-e-3
-- **Midjourney:** https://midjourney.com
-- **Canva:** https://canva.com (for editing)
-- **Remove.bg:** https://remove.bg (for transparency)
-
----
-
-**Ready to generate your marketing assets?** Start with the logo, then move to icons and banners. 🔥
+**Ready to generate premium assets?** Start with the logo, then move to banners and screenshots. Use Midjourney for best results. 🔥

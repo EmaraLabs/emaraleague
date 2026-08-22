@@ -1,27 +1,27 @@
-# Website Graphics Prompts for ChatGPT/DALL-E/Midjourney
+# Premium Website Graphics Prompts — Trophy & Crown Elements
 
-## Hero Section Background (1920x1080)
-
-```
-A hero section background for "EmaraLeague" website. 1920x1080 resolution. Abstract Minecraft tournament scene with glowing particles and brackets. Dark tech background (#0A0A0F) with indigo (#6366F1) and emerald (#10B981) accents. Blurred, atmospheric, premium gaming aesthetic. Suitable for website header background.
-```
-
-## Feature Section Graphics (800x600)
+## Hero Section Background (Cinematic 1920x1080)
 
 ```
-A feature section graphic for "EmaraLeague" website. 800x600 resolution. Isometric illustration of Minecraft tournament arena with players. Clean, modern design. Dark background with brand colors. Minimalist, professional. Suitable for feature showcase section.
+A cinematic hero background for EmaraLeague website. 1920x1080. Massive golden trophy with intricate crown at center stage. Trophy has photorealistic engravings and emerald accents. Background: dark tournament arena with dramatic spotlights and particle effects. Indigo (#6366F1) atmospheric haze. Depth of field, lens flare. Premium, exclusive, championship-level aesthetic. Not minimalist — rich, immersive, detailed.
 ```
 
-## Pricing Section Background (1920x1080)
+## Feature Section Graphics (Luxury 800x600)
 
 ```
-A pricing section background for "EmaraLeague" website. 1920x1080 resolution. Subtle geometric pattern with trophy icons. Dark theme with indigo accents. Clean, non-distracting. Suitable for pricing table background. Premium software aesthetic.
+A luxury feature graphic for EmaraLeague website. 800x600. Isometric golden trophy with crown on dark velvet pedestal. Dramatic side lighting creating rich shadows. Background: subtle tournament bracket pattern in dark indigo. Premium, sophisticated, high-end software aesthetic. No flat design — has depth, texture, material quality.
 ```
 
-## Testimonial Section Graphics (600x400)
+## Pricing Section Background (Regal 1920x1080)
 
 ```
-A testimonial section graphic for "EmaraLeague" website. 600x400 resolution. Minecraft server owner avatar with quote bubble. Friendly, approachable design. Dark background with light text. Professional but warm. Suitable for customer testimonials section.
+A regal pricing section background for EmaraLeague website. 1920x1080. Subtle golden crown pattern on dark charcoal (#0A0A0F). Crowns have delicate emerald details. Soft indigo glow from edges. Elegant, premium, non-distracting. Suitable for pricing table overlay. Luxury brand aesthetic.
+```
+
+## Testimonial Graphics (Sophisticated 600x400)
+
+```
+A sophisticated testimonial graphic for EmaraLeague website. 600x400. Golden trophy with crown in corner, soft focus. Quote bubble in elegant gold frame. Dark background with indigo accents. Professional, warm, trustworthy. Premium testimonial section design. No cartoon elements — serious, credible.
 ```
 
 ---
@@ -29,22 +29,21 @@ A testimonial section graphic for "EmaraLeague" website. 600x400 resolution. Min
 ## 📝 How to Use
 
 1. Copy the prompt above
-2. Paste into ChatGPT (with DALL-E) or Midjourney
-3. Generate at specified resolution
-4. Download as PNG or JPG
-5. Use for website design
+2. Use Midjourney for cinematic quality
+3. Add "--ar 16:9" for hero, "--ar 4:3" for features
+4. Generate at highest resolution
+5. Optimize for web (compress)
 
 ## 🎨 Website Graphics Requirements
 
-- **Style:** Dark tech theme
-- **Colors:** Brand palette (indigo, emerald, dark)
-- **Format:** PNG for graphics with transparency
-- **Quality:** High resolution for retina displays
+- **Style:** Cinematic, luxury, premium
+- **Elements:** Trophy + Crown integrated
+- **Colors:** Gold, indigo, emerald, dark
+- **Quality:** Photorealistic, detailed
 
-## 💡 Tips
+## 💡 Pro Tips
 
-- Keep graphics consistent with brand
-- Use subtle backgrounds for text readability
-- Test on actual website layout
-- Optimize file size for web
-- Use WebP format if possible
+- "Cinematic lighting" for drama
+- "Photorealistic" for detail
+- "Depth of field" for focus
+- Avoid "flat" or "minimalist"

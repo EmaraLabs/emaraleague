@@ -1,21 +1,21 @@
-# Logo Prompt for ChatGPT/DALL-E/Midjourney
+# Premium Logo Prompts — Trophy & Crown Elements
 
-## Primary Logo (Main Brand)
-
-```
-A premium logo for "EmaraLeague", a Minecraft tournament plugin brand. Modern dark-tech aesthetic with a minimalist trophy or crown icon integrated with the letter "E". Deep indigo (#6366F1) and emerald (#10B981) gradient on a dark charcoal background (#0A0A0F). Clean, professional, esports-style branding. Suitable for a software company logo. Vector-style, scalable design.
-```
-
-## Alternative Logo (Minimalist)
+## Primary Logo (Luxury Esports)
 
 ```
-A minimalist logo for "EmaraLeague" Minecraft plugin. Simple geometric trophy shape with clean lines. Single color indigo (#6366F1) on transparent background. Modern, flat design, suitable for app icon. Professional gaming/esports aesthetic. No text, icon only.
+A luxury esports logo for "EmaraLeague" featuring an ornate golden trophy with an intricate crown resting on top. The trophy has detailed engravings and a dark obsidian base. Crown has subtle emerald gemstones. Deep indigo (#6366F1) metallic accents on dark charcoal (#0A0A0F). Cinematic lighting with subtle rim glow. Premium, sophisticated, high-end gaming brand aesthetic. Not minimalist — rich in detail and depth. Vector-style with 3D rendering quality.
 ```
 
-## Logo with Text (Horizontal)
+## Alternative Logo (Regal Minimal)
 
 ```
-A horizontal logo for "EmaraLeague" featuring a stylized trophy icon on the left and "EmaraLeague" text on the right. Font: modern sans-serif, bold. Colors: indigo (#6366F1) for icon, white (#F9FAFB) for text. Dark background (#0A0A0F). Clean, professional, esports branding style.
+A regal minimalist logo for "EmaraLeague" with a sleek, modern crown floating above a stylized trophy silhouette. Single continuous line art style in metallic indigo (#6366F1). Crown features subtle emerald (#10B981) accent at its peak. Dark background (#0A0A0F). Elegant, premium, sophisticated. No gradients — pure metallic sheen. Suitable for high-end esports organization branding.
+```
+
+## Logo with Text (Cinematic)
+
+```
+A cinematic logo for "EmaraLeague" featuring a photorealistic golden trophy with an ornate crown embedded in its design. Trophy sits on a dark marble pedestal. "EMARALEAGUE" in custom serif font below, letterpress effect in metallic gold. Subtle particle effects and depth of field. Dark, moody lighting with dramatic shadows. Premium, exclusive, championship-level branding. 8K quality, hyper-detailed.
 ```
 
 ---
@@ -23,21 +23,21 @@ A horizontal logo for "EmaraLeague" featuring a stylized trophy icon on the left
 ## 📝 How to Use
 
 1. Copy the prompt above
-2. Paste into ChatGPT (with DALL-E) or Midjourney
-3. Generate 4 variations
-4. Pick the best one
-5. Download as PNG (512x512 or higher)
+2. Paste into Midjourney (best for this style) or DALL-E
+3. Add "--v 6" for Midjourney for best quality
+4. Generate 4 variations
+5. Pick the most premium-looking one
 
-## 🎨 Color Palette Reference
+## 🎨 Key Elements
 
-- **Primary Dark:** #0A0A0F
-- **Primary Indigo:** #6366F1
-- **Accent Emerald:** #10B981
-- **Text Light:** #F9FAFB
+- **Trophy:** Ornate, detailed, golden
+- **Crown:** Intricate, embedded or floating
+- **Colors:** Deep indigo, metallic gold, emerald accents
+- **Style:** Luxury, cinematic, not minimalist
 
-## 💡 Tips
+## 💡 Pro Tips
 
-- Add "--v 6" for Midjourney for better quality
-- Add "vector style" for cleaner lines
-- Add "flat design" for minimalist look
-- Request "transparent background" for versatility
+- Use "cinematic lighting" for depth
+- Add "photorealistic" for detail
+- Avoid "flat design" — we want depth
+- Request "8K" or "hyper-detailed" for quality

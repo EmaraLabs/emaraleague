@@ -1,21 +1,21 @@
-# Banner Prompt for ChatGPT/DALL-E/Midjourney
+# Premium Banner Prompts — Trophy & Crown Elements
 
-## Marketplace Banner (800x200)
-
-```
-A professional banner for "EmaraLeague" Minecraft tournament plugin. 800x200 pixels horizontal layout. Dark tech background (#0A0A0F) with glowing indigo (#6366F1) trophy icon on the left. "EmaraLeague" in bold white text on the right. Subtle gradient effects. Premium gaming/esports aesthetic. Clean, modern, suitable for BuiltByBit or SpigotMC marketplace header.
-```
-
-## Alternative Banner (Feature Focus)
+## Marketplace Banner (Cinematic 800x200)
 
 ```
-An 800x200 banner for Minecraft plugin "EmaraLeague". Split design: left side shows tournament bracket graphic, right side shows "EmaraLeague" text with tagline "Premium Tournament Engine". Dark background with indigo and emerald accents. Professional gaming banner style. Eye-catching but clean.
+A cinematic 800x200 banner for "EmaraLeague" featuring a massive golden trophy with an intricate crown on the left side. Trophy has detailed engravings and emerald accents. Right side: "EMARALEAGUE" in custom metallic gold serif font with subtle glow. Background: dark tournament arena with spotlights and particle effects. Indigo (#6366F1) atmospheric haze. Premium, exclusive, championship-level aesthetic. Not minimalist — rich, detailed, immersive.
 ```
 
-## Social Media Banner (1200x630)
+## Alternative Banner (Regal Split)
 
 ```
-A 1200x630 social media banner for "EmaraLeague" Minecraft plugin. Hero image style with Minecraft tournament scene in background (blurred). Foreground: "EmaraLeague" logo and text "Run Professional Tournaments on Your Server". Call-to-action button "Buy Now". Dark theme with indigo accents. Suitable for Twitter/X or Facebook header.
+An 800x200 banner with split composition. Left: ornate golden crown resting on dark velvet cushion, dramatic side lighting. Right: "EmaraLeague" in elegant gold lettering with "Premium Tournament Engine" tagline below. Background: subtle tournament bracket pattern in dark indigo. Luxury, regal, sophisticated. No cartoon elements — serious, premium branding.
+```
+
+## Social Media Banner (Epic 1200x630)
+
+```
+A 1200x630 epic banner for "EmaraLeague" featuring a colossal golden trophy with crown at center stage. Trophy is 3D rendered with photorealistic detail. Background: Minecraft tournament arena with cheering crowd silhouette. "EMARALEAGUE" in massive metallic gold letters at bottom. Cinematic depth of field, lens flare, particle effects. Dark, dramatic, premium. Championship event atmosphere.
 ```
 
 ---
@@ -23,24 +23,23 @@ A 1200x630 social media banner for "EmaraLeague" Minecraft plugin. Hero image st
 ## 📝 How to Use
 
 1. Copy the prompt above
-2. Paste into ChatGPT (with DALL-E) or Midjourney
-3. Generate at specified resolution
-4. Download as PNG or JPG
-5. Use for marketplace listings or social media
+2. Use Midjourney for cinematic quality
+3. Add "--ar 4:1" for banner format
+4. Generate at highest resolution
+5. Crop to exact size if needed
 
 ## 🎨 Banner Sizes
 
-| Platform | Size | Use |
-|----------|------|-----|
-| BuiltByBit | 800x200 | Marketplace header |
-| SpigotMC | 800x200 | Resource header |
-| Twitter/X | 1200x630 | Profile header |
-| Facebook | 1200x630 | Page cover |
-| Discord | 960x540 | Server banner |
+| Platform | Size | Style |
+|----------|------|-------|
+| BuiltByBit | 800x200 | Cinematic |
+| SpigotMC | 800x200 | Regal |
+| Twitter/X | 1200x630 | Epic |
+| Discord | 960x540 | Premium |
 
-## 💡 Tips
+## 💡 Pro Tips
 
-- Keep text readable at small sizes
-- Use high contrast (light text on dark)
-- Include call-to-action if applicable
-- Test on actual platform before finalizing
+- "Cinematic lighting" for drama
+- "Photorealistic" for detail
+- "Depth of field" for focus
+- Avoid "flat" or "minimalist"

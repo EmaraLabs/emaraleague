@@ -1,39 +1,39 @@
-# Screenshot Prompts for ChatGPT/DALL-E/Midjourney
+# Premium Screenshot Prompts — Trophy & Crown Elements
 
-## GUI Editor Screenshot
-
-```
-A screenshot of Minecraft plugin GUI editor for "EmaraLeague". In-game inventory-style interface showing arena creation menu. Dark theme with indigo accents. Grid layout with icons for different arena options. Clean, modern Minecraft UI design. 1920x1080 resolution. Professional gaming software interface.
-```
-
-## Tournament Bracket Screenshot
+## GUI Editor Screenshot (Cinematic)
 
 ```
-A screenshot of live tournament bracket in Minecraft. Single elimination bracket displayed on screen with team names and scores. Dark overlay with indigo highlights. Professional esports bracket visualization. Clean, readable text. 1920x1080 resolution. Suitable for showcasing tournament management.
+A cinematic screenshot of EmaraLeague GUI editor in Minecraft. Inventory-style interface with ornate golden trophy icon in center slot. Trophy has crown on top with emerald jewel. Dark UI panels with indigo (#6366F1) glow effects. Background: blurred arena with spotlights. Professional, premium interface design. 1920x1080. Rich detail, not flat.
 ```
 
-## Gameplay Screenshot (Duels)
+## Tournament Bracket Screenshot (Championship)
 
 ```
-A screenshot of Minecraft PvP duel in progress. Two players fighting in arena. Scoreboard showing "EmaraLeague" tournament info. Kill feed and timer visible. Dark UI overlay with indigo accents. Action-packed gameplay moment. 1920x1080 resolution. Professional esports event aesthetic.
+A championship-level screenshot of live tournament bracket. Golden trophy with crown displayed at top center. Bracket lines in metallic indigo. Team names in elegant gold font. Background: dark arena with particle effects. Cinematic lighting. 1920x1080. Premium esports broadcast aesthetic.
 ```
 
-## Gameplay Screenshot (Spleef)
+## Duels Gameplay Screenshot (Epic)
 
 ```
-A screenshot of Minecraft Spleef game in progress. Players on snow/platform layer breaking blocks. Multiple players visible. "EmaraLeague" branding on screen. Score display and player count. Action gameplay shot. 1920x1080 resolution. Fun, competitive atmosphere.
+An epic screenshot of Minecraft PvP duel finale. Winner standing on podium with massive golden trophy and crown appearing above. Confetti particles. Dark arena with dramatic spotlights. "VICTORY" in metallic gold text. Cinematic depth of field. 1920x1080. Championship moment, premium feel.
 ```
 
-## Gameplay Screenshot (TNT Run)
+## Spleef Gameplay Screenshot (Dramatic)
 
 ```
-A screenshot of Minecraft TNT Run game. Players running on disappearing TNT blocks. Blocks falling away behind players. "EmaraLeague" tournament info displayed. Fast-paced action shot. 1920x1080 resolution. Exciting, dynamic gameplay.
+A dramatic screenshot of Spleef final round. Last two players on shrinking platform. Golden trophy with crown icon in corner UI. Indigo glow effects. Dark void background with arena spotlights. Tension, competition, premium atmosphere. 1920x1080. Not cartoonish — serious esports.
 ```
 
-## Admin Panel Screenshot
+## TNT Run Screenshot (Action)
 
 ```
-A screenshot of Minecraft server admin panel for "EmaraLeague" plugin. Configuration menu with tournament settings. Dark theme interface with organized sections. Dropdown menus and toggles. Professional server management UI. 1920x1080 resolution. Clean, user-friendly design.
+An action-packed screenshot of TNT Run final sprint. Player leaping across falling TNT blocks. Golden trophy with crown displayed prominently in UI. Motion blur on background. Dramatic lighting with indigo accents. 1920x1080. High-stakes competition, premium production value.
+```
+
+## Admin Panel Screenshot (Professional)
+
+```
+A professional screenshot of EmaraLeague admin configuration panel. Ornate golden trophy with crown as central icon. Dark UI with indigo accents and gold text. Organized sections for tournament settings. Clean, sophisticated interface. 1920x1080. Enterprise-level software aesthetic.
 ```
 
 ---
@@ -41,22 +41,21 @@ A screenshot of Minecraft server admin panel for "EmaraLeague" plugin. Configura
 ## 📝 How to Use
 
 1. Copy the prompt above
-2. Paste into ChatGPT (with DALL-E) or Midjourney
-3. Generate at 1920x1080 resolution
-4. Download as PNG or JPG
-5. Use for marketplace listings, website, documentation
+2. Use Midjourney for best quality
+3. Add "--ar 16:9" for widescreen
+4. Generate at 1920x1080
+5. Use for marketplace listings
 
 ## 🎨 Screenshot Requirements
 
-- **Resolution:** 1920x1080 (Full HD)
-- **Format:** PNG (for UI) or JPG (for gameplay)
-- **Style:** Dark theme with brand colors
-- **Content:** Show actual plugin features
+- **Resolution:** 1920x1080
+- **Style:** Cinematic, premium
+- **Elements:** Trophy + Crown in every shot
+- **Mood:** Championship, exclusive
 
-## 💡 Tips
+## 💡 Pro Tips
 
-- Use actual Minecraft gameplay for authenticity
-- Add UI overlays to show plugin features
-- Keep text readable
-- Show multiple game modes
-- Include branding elements
+- "Cinematic" for drama
+- "Photorealistic" for detail
+- "Depth of field" for focus
+- Avoid "flat" or "cartoon"

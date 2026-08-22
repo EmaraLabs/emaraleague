@@ -1,21 +1,21 @@
-# Plugin Icon Prompt for ChatGPT/DALL-E/Midjourney
+# Premium Icon Prompts — Trophy & Crown Elements
 
-## Plugin Icon (64x64)
-
-```
-A 64x64 pixel plugin icon for "EmaraLeague" Minecraft tournament plugin. Simple, bold trophy icon in flat design style. Single indigo color (#6366F1) on transparent background. Minimalist, recognizable at small size. Suitable for Minecraft plugin list or server browser. Clean lines, no text, icon only.
-```
-
-## Alternative Icon (Minecraft Style)
+## Plugin Icon (Regal 64x64)
 
 ```
-A 64x64 pixel icon for Minecraft plugin "EmaraLeague". Pixel-art style trophy in gold and diamond colors. 16x16 or 32x32 pixel art aesthetic. Transparent background. Fits Minecraft's visual style. Simple, bold, recognizable. No text.
+A 64x64 pixel icon featuring a miniature golden trophy with a delicate crown perched on top. Pixel-art style with rich detail — visible trophy engravings and crown jewels. Gold and diamond color palette with subtle emerald accent. Dark obsidian base. Transparent background. Recognizable at small size but rich in detail. Premium Minecraft plugin aesthetic — not flat, has depth and texture.
 ```
 
-## Server List Icon (64x64)
+## Alternative Icon (Crowned Trophy)
 
 ```
-A 64x64 server list icon for Minecraft tournament plugin. Glowing trophy with particles effect. Dark background with indigo glow (#6366F1). Eye-catching, premium look. Suitable for Minecraft server list thumbnail. Modern gaming aesthetic.
+A 64x64 pixel icon of a stylized crown integrated into trophy design. Crown forms the top rim of the trophy cup. Metallic gold with indigo (#6366F1) inner glow. Pixel-perfect detail. Transparent background. Luxury esports icon style. Suitable for Minecraft server list or plugin browser. Sophisticated, not childish.
+```
+
+## Server List Icon (Premium 64x64)
+
+```
+A 64x64 server list icon showing a glowing golden trophy with an ornate crown. Trophy emits soft indigo (#6366F1) particle glow. Crown has emerald (#10B981) center jewel. Dark marble pedestal base. Rich, premium look — stands out in server browser. Cinematic lighting. Not flat design — has depth, shadows, highlights. Eye-catching but sophisticated.
 ```
 
 ---
@@ -23,21 +23,21 @@ A 64x64 server list icon for Minecraft tournament plugin. Glowing trophy with pa
 ## 📝 How to Use
 
 1. Copy the prompt above
-2. Paste into ChatGPT (with DALL-E) or Midjourney
-3. Generate at 64x64 or 128x128 resolution
-4. Download as PNG with transparent background
-5. Resize to 64x64 if needed
+2. Use Midjourney for pixel-art style
+3. Add "--v 6 --ar 1:1" for square format
+4. Generate at 512x512 then downscale to 64x64
+5. Use remove.bg for transparency if needed
 
 ## 🎨 Icon Requirements
 
 - **Size:** 64x64 pixels (Minecraft standard)
-- **Format:** PNG with transparency
-- **Style:** Flat design or pixel art
-- **Colors:** Match brand palette
+- **Style:** Pixel-art with depth (not flat)
+- **Elements:** Trophy + Crown integrated
+- **Colors:** Gold, indigo, emerald accents
 
-## 💡 Tips
+## 💡 Pro Tips
 
-- For Minecraft, pixel art style works best
-- Keep it simple — recognizable at small size
-- Test at 16x16 to ensure clarity
-- Use high contrast colors
+- "Pixel-art" for Minecraft aesthetic
+- "Depth and texture" to avoid flat look
+- "Transparent background" essential
+- Test at 16x16 for clarity
