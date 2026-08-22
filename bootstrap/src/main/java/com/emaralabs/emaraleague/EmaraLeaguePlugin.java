@@ -36,6 +36,11 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
         instance = this;
 
         try {
+            // Ensure data folder exists before database init
+            if (!getDataFolder().exists()) {
+                getDataFolder().mkdirs();
+            }
+
             String dbPath = getDataFolder().getAbsolutePath() + "/emaraleague.db";
             databaseManager = new DatabaseManager("jdbc:sqlite:" + dbPath, "", "");
             databaseManager.initializeSchema();
