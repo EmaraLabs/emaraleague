@@ -14,6 +14,7 @@ import com.emaralabs.emaraleague.infrastructure.database.DatabaseManager;
 import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
 import com.emaralabs.emaraleague.modules.duels.DuelsGameMode;
+import com.emaralabs.emaraleague.modules.spleef.SpleefGameMode;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class EmaraLeaguePlugin extends JavaPlugin {
@@ -52,6 +53,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
         matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
 
         gameModeRegistry.register(new DuelsGameMode());
+        gameModeRegistry.register(new SpleefGameMode());
         matchEngine.setGameModeRegistry(gameModeRegistry);
         matchEngine.setCountdown(matchCountdown);
 
