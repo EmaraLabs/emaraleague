@@ -8,13 +8,6 @@ website: https://emaralabs.com
 prefix: EmaraLeague
 load: STARTUP
 
-commands:
-  emaraleague:
-    description: EmaraLeague tournament management
-    aliases: [el, league]
-    permission: emaraleague.use
-    usage: /emaraleague <create|join|leave|start|info|help|reload>
-
 permissions:
   emaraleague.use:
     description: Allows use of EmaraLeague commands

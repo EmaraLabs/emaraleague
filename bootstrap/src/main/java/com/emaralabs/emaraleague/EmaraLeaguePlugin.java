@@ -15,8 +15,12 @@ import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
 import com.emaralabs.emaraleague.modules.duels.DuelsGameMode;
 import com.emaralabs.emaraleague.modules.spleef.SpleefGameMode;
+import io.papermc.paper.command.brigadier.BasicCommand;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
 
 public final class EmaraLeaguePlugin extends JavaPlugin {
 
@@ -65,13 +69,20 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
             matchEngine.setCountdown(matchCountdown);
 
             EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager, arenaManager);
-            getServer().getCommandMap().register("emaraleague", new org.bukkit.command.Command("emaraleague") {
+
+            BasicCommand basicCommand = new BasicCommand() {
                 @Override
-                public boolean execute(CommandSender sender, String label, String[] args) {
-                    return command.onCommand(sender, this, label, args);
+                public void execute(CommandSourceStack stack, String[] args) {
+                    command.onCommand(stack.getSender(), null, "emaraleague", args);
                 }
-            });
-            getCommand("emaraleague").setTabCompleter(command);
+
+                @Override
+                public List<String> suggest(CommandSourceStack stack, String[] args) {
+                    return command.onTabComplete(stack.getSender(), null, "emaraleague", args);
+                }
+            };
+
+            registerCommand("emaraleague", "EmaraLeague tournament management", List.of("el", "league"), basicCommand);
 
             PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator);
             getServer().getPluginManager().registerEvents(listener, this);
