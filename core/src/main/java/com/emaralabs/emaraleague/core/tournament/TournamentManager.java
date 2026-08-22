@@ -237,4 +237,78 @@ public final class TournamentManager {
     public int getTeamPlayerCount(String tournamentName, UUID teamId) {
         return getPlayersInTeam(tournamentName, teamId).size();
     }
+
+    public Tournament registerPlayer(String tournamentName, UUID playerId) {
+        Tournament current = byName.get(tournamentName.toLowerCase());
+        if (current == null) {
+            throw new IllegalArgumentException("Tournament not found: " + tournamentName);
+        }
+        if (current.isPlayerRegistered(playerId)) {
+            throw new IllegalStateException("Player is already registered in this tournament");
+        }
+        Tournament updated = current.addRegisteredPlayer(playerId);
+        byName.put(tournamentName.toLowerCase(), updated);
+        byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
+        return updated;
+    }
+
+    public Tournament unregisterPlayer(String tournamentName, UUID playerId) {
+        Tournament current = byName.get(tournamentName.toLowerCase());
+        if (current == null) {
+            throw new IllegalArgumentException("Tournament not found: " + tournamentName);
+        }
+        Tournament updated = current.removeRegisteredPlayer(playerId);
+        byName.put(tournamentName.toLowerCase(), updated);
+        byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
+        return updated;
+    }
+
+    public boolean isPlayerRegistered(String tournamentName, UUID playerId) {
+        return getTournament(tournamentName)
+                .map(t -> t.isPlayerRegistered(playerId))
+                .orElse(false);
+    }
+
+    public int getRegisteredCount(String tournamentName) {
+        return getTournament(tournamentName)
+                .map(Tournament::getRegisteredCount)
+                .orElse(0);
+    }
+
+    public Tournament autoAssignToTeam(String tournamentName, UUID playerId) {
+        Tournament current = byName.get(tournamentName.toLowerCase());
+        if (current == null) {
+            throw new IllegalArgumentException("Tournament not found: " + tournamentName);
+        }
+        if (current.state() != TournamentState.REGISTRATION) {
+            throw new IllegalStateException("Cannot assign players after registration closes");
+        }
+
+        // Find team with fewest players
+        Team smallest = null;
+        for (Team team : current.teams()) {
+            if (smallest == null || team.getPlayerCount() < smallest.getPlayerCount()) {
+                smallest = team;
+            }
+        }
+
+        if (smallest == null) {
+            throw new IllegalStateException("No teams available in tournament");
+        }
+
+        return assignPlayerToTeam(tournamentName, smallest.id(), playerId);
+    }
+
+    public boolean canStart(String tournamentName) {
+        return getTournament(tournamentName)
+                .map(t -> t.teams().size() >= 2 &&
+                        t.teams().stream().allMatch(team -> team.getPlayerCount() >= 1))
+                .orElse(false);
+    }
 }

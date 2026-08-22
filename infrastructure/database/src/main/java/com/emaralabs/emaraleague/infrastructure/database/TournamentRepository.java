@@ -134,7 +134,8 @@ public class TournamentRepository implements Repository<Tournament, UUID>, Tourn
             com.emaralabs.emaraleague.core.tournament.BracketType.valueOf(rs.getString("bracket_type")),
             com.emaralabs.emaraleague.core.tournament.TournamentState.valueOf(rs.getString("state")),
             new ArrayList<>(),
-            new ArrayList<>()
+            new ArrayList<>(),
+            new java.util.HashSet<>()
         );
     }
 

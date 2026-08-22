@@ -158,16 +158,57 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (tournamentManager.getTeamForPlayer(name, player.getUniqueId()).isPresent()) {
-            sender.sendMessage(MessageFormatter.error("You are already in this tournament."));
+        // Bug 1 fix: Check if already registered (even without team)
+        if (tournamentManager.isPlayerRegistered(name, player.getUniqueId())) {
+            sender.sendMessage(MessageFormatter.error("You are already registered in this tournament."));
             return;
         }
 
+        // Bug 2 fix: Auto-create teams if none exist, then auto-assign
+        Tournament tournament = tournamentManager.getTournament(name).get();
+        if (tournament.teams().isEmpty()) {
+            // Auto-create 2 teams for 1v1 modes, or 4 teams for FFA modes
+            int teamCount = tournament.mode().equals("duels") ? 2 : 4;
+            for (int i = 1; i <= teamCount; i++) {
+                tournamentManager.addTeam(name, new Team("Team" + i, i));
+            }
+        }
+
+        // Register player
+        tournamentManager.registerPlayer(name, player.getUniqueId());
+
+        // Auto-assign to team with fewest players
+        tournamentManager.autoAssignToTeam(name, player.getUniqueId());
+
+        Optional<Team> assignedTeam = tournamentManager.getTeamForPlayer(name, player.getUniqueId());
+        String teamName = assignedTeam.map(Team::name).orElse("Unknown");
+
         sender.sendMessage(messages.get("tournament-joined", Map.of("name", name)));
+        sender.sendMessage(MessageFormatter.info("You have been assigned to " + teamName));
     }
 
     private void handleLeave(CommandSender sender) {
-        sender.sendMessage(messages.get("tournament-left"));
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+
+        // Find player's tournament and remove from team + unregister
+        for (Tournament tournament : tournamentManager.getTournaments()) {
+            if (tournament.isPlayerRegistered(player.getUniqueId())) {
+                // Remove from team
+                Optional<Team> team = tournamentManager.getTeamForPlayer(tournament.name(), player.getUniqueId());
+                if (team.isPresent()) {
+                    tournamentManager.removePlayerFromTeam(tournament.name(), team.get().id(), player.getUniqueId());
+                }
+                // Unregister
+                tournamentManager.unregisterPlayer(tournament.name(), player.getUniqueId());
+                sender.sendMessage(messages.get("tournament-left"));
+                return;
+            }
+        }
+
+        sender.sendMessage(MessageFormatter.error("You are not in any tournament."));
     }
 
     private void handleTeam(CommandSender sender, String[] args) {
@@ -209,6 +250,12 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
         if (team.isEmpty()) {
             sender.sendMessage(MessageFormatter.error("Team not found: " + teamName));
+            return;
+        }
+
+        // Bug 4 fix: Check if player is already in ANY team in this tournament
+        if (tournamentManager.getTeamForPlayer(tournamentName, player.getUniqueId()).isPresent()) {
+            sender.sendMessage(MessageFormatter.error("You are already in a team in this tournament."));
             return;
         }
 
@@ -272,6 +319,12 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         var nameResult = InputValidator.validateTournamentName(name);
         if (!nameResult.isValid()) {
             sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        // Bug 3 fix: Validate tournament can actually start
+        if (!tournamentManager.canStart(name)) {
+            sender.sendMessage(MessageFormatter.error("Tournament needs at least 2 teams with 1 player each to start."));
             return;
         }
 

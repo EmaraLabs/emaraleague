@@ -112,6 +112,14 @@ class EmaraLeagueCommandTest {
         when(sender.hasPermission(anyString())).thenReturn(true);
         tournamentManager.createTournament("SummerCup", "duels", com.emaralabs.emaraleague.core.tournament.BracketType.SINGLE_ELIMINATION);
 
+        // Setup teams with players so canStart() passes
+        com.emaralabs.emaraleague.core.tournament.Team alpha = new com.emaralabs.emaraleague.core.tournament.Team("Alpha", 1);
+        com.emaralabs.emaraleague.core.tournament.Team beta = new com.emaralabs.emaraleague.core.tournament.Team("Beta", 2);
+        tournamentManager.addTeam("SummerCup", alpha);
+        tournamentManager.addTeam("SummerCup", beta);
+        tournamentManager.assignPlayerToTeam("SummerCup", alpha.id(), java.util.UUID.randomUUID());
+        tournamentManager.assignPlayerToTeam("SummerCup", beta.id(), java.util.UUID.randomUUID());
+
         cmd.onCommand(sender, null, "emaraleague", new String[]{"start", "SummerCup"});
 
         assertEquals(com.emaralabs.emaraleague.core.tournament.TournamentState.STARTING,
