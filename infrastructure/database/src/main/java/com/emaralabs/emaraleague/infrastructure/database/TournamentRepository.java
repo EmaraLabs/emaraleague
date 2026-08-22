@@ -1,8 +1,6 @@
 package com.emaralabs.emaraleague.infrastructure.database;
 
-import com.emaralabs.emaraleague.core.tournament.BracketType;
 import com.emaralabs.emaraleague.core.tournament.Tournament;
-import com.emaralabs.emaraleague.core.tournament.TournamentState;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,9 +40,11 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
                 stmt.executeUpdate();
                 return entity;
             } catch (SQLException e) {
-                throw new RuntimeException("Failed to save tournament", e);
+                throw new RepositoryException("Failed to save tournament: " + entity.name(), e);
             }
-        }, executor);
+        }, executor).exceptionally(throwable -> {
+            throw new RepositoryException("Async save failed", throwable);
+        });
     }
 
     @Override
@@ -58,11 +58,13 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToTournament(rs));
                 }
-                return Optional.empty();
+                return Optional.<Tournament>empty();
             } catch (SQLException e) {
-                throw new RuntimeException("Failed to find tournament", e);
+                throw new RepositoryException("Failed to find tournament: " + id, e);
             }
-        }, executor);
+        }, executor).exceptionally(throwable -> {
+            throw new RepositoryException("Async findById failed", throwable);
+        });
     }
 
     @Override
@@ -78,9 +80,11 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
                 }
                 return tournaments;
             } catch (SQLException e) {
-                throw new RuntimeException("Failed to find all tournaments", e);
+                throw new RepositoryException("Failed to find all tournaments", e);
             }
-        }, executor);
+        }, executor).exceptionally(throwable -> {
+            throw new RepositoryException("Async findAll failed", throwable);
+        });
     }
 
     @Override
@@ -92,9 +96,11 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
                 stmt.setString(1, id.toString());
                 stmt.executeUpdate();
             } catch (SQLException e) {
-                throw new RuntimeException("Failed to delete tournament", e);
+                throw new RepositoryException("Failed to delete tournament: " + id, e);
             }
-        }, executor);
+        }, executor).exceptionally(throwable -> {
+            throw new RepositoryException("Async delete failed", throwable);
+        });
     }
 
     @Override
@@ -112,9 +118,11 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
                 stmt.executeUpdate();
                 return entity;
             } catch (SQLException e) {
-                throw new RuntimeException("Failed to update tournament", e);
+                throw new RepositoryException("Failed to update tournament: " + entity.id(), e);
             }
-        }, executor);
+        }, executor).exceptionally(throwable -> {
+            throw new RepositoryException("Async update failed", throwable);
+        });
     }
 
     private Tournament mapResultSetToTournament(ResultSet rs) throws SQLException {
@@ -122,8 +130,8 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
             UUID.fromString(rs.getString("id")),
             rs.getString("name"),
             rs.getString("mode"),
-            BracketType.valueOf(rs.getString("bracket_type")),
-            TournamentState.valueOf(rs.getString("state")),
+            com.emaralabs.emaraleague.core.tournament.BracketType.valueOf(rs.getString("bracket_type")),
+            com.emaralabs.emaraleague.core.tournament.TournamentState.valueOf(rs.getString("state")),
             new ArrayList<>(),
             new ArrayList<>()
         );
@@ -131,5 +139,11 @@ public class TournamentRepository implements Repository<Tournament, UUID> {
 
     public void shutdown() {
         executor.shutdown();
+    }
+
+    public static class RepositoryException extends RuntimeException {
+        public RepositoryException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

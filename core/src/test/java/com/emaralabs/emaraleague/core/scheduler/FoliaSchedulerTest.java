@@ -25,4 +25,20 @@ class FoliaSchedulerTest {
         FoliaScheduler scheduler = new FoliaScheduler(null);
         assertNotNull(scheduler);
     }
+
+    @Test
+    void testFoliaSchedulerDelayedTask() {
+        FoliaScheduler scheduler = new FoliaScheduler(null);
+        AtomicBoolean ran = new AtomicBoolean(false);
+        scheduler.runDelayed(() -> ran.set(true), 1);
+        assertFalse(ran.get());
+    }
+
+    @Test
+    void testFoliaSchedulerRepeatingTask() {
+        FoliaScheduler scheduler = new FoliaScheduler(null);
+        AtomicBoolean ran = new AtomicBoolean(false);
+        scheduler.runRepeating(() -> ran.set(true), 1, 20);
+        assertFalse(ran.get());
+    }
 }
