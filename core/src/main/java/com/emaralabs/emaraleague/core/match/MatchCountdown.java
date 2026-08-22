@@ -3,13 +3,22 @@ package com.emaralabs.emaraleague.core.match;
 import com.emaralabs.emaraleague.core.scheduler.EmaraScheduler;
 import com.emaralabs.emaraleague.core.tournament.Match;
 import com.emaralabs.emaraleague.core.ui.MessageRegistry;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class MatchCountdown {
 
     private final EmaraScheduler scheduler;
     private final MessageRegistry messages;
+    private final List<Player> players = new ArrayList<>();
     private int remainingSeconds;
+    private int totalSeconds;
     private boolean running;
+    private BossBar bossBar;
 
     public MatchCountdown(EmaraScheduler scheduler, MessageRegistry messages) {
         this.scheduler = scheduler;
@@ -20,21 +29,69 @@ public final class MatchCountdown {
 
     public void startCountdown(Match match, int seconds, Runnable onComplete) {
         this.remainingSeconds = seconds;
+        this.totalSeconds = seconds;
         this.running = true;
+
+        bossBar = BossBar.bossBar(
+                Component.text("Match starting in " + seconds + "s"),
+                1.0f,
+                BossBar.Color.YELLOW,
+                BossBar.Overlay.PROGRESS
+        );
+
+        for (Player player : players) {
+            player.showBossBar(bossBar);
+        }
 
         scheduler.runRepeating(() -> {
             if (remainingSeconds <= 0) {
                 running = false;
+                hideBossBar();
                 onComplete.run();
                 return;
             }
-            remainingSeconds--;
+            tick();
         }, 0, 20);
+    }
+
+    public void tick() {
+        if (remainingSeconds <= 0) {
+            running = false;
+            hideBossBar();
+            return;
+        }
+        remainingSeconds--;
+        updateBossBar();
+    }
+
+    private void updateBossBar() {
+        if (bossBar == null) {
+            return;
+        }
+        float progress = (float) remainingSeconds / totalSeconds;
+        bossBar.progress(progress);
+        bossBar.name(Component.text("Match starting in " + remainingSeconds + "s"));
+        if (remainingSeconds <= 3) {
+            bossBar.color(BossBar.Color.RED);
+        } else if (remainingSeconds <= 5) {
+            bossBar.color(BossBar.Color.YELLOW);
+        }
+    }
+
+    private void hideBossBar() {
+        if (bossBar == null) {
+            return;
+        }
+        for (Player player : players) {
+            player.hideBossBar(bossBar);
+        }
+        bossBar = null;
     }
 
     public void cancel() {
         running = false;
         remainingSeconds = 0;
+        hideBossBar();
     }
 
     public boolean isRunning() {
@@ -43,5 +100,31 @@ public final class MatchCountdown {
 
     public int getRemainingSeconds() {
         return remainingSeconds;
+    }
+
+    public BossBar getBossBar() {
+        return bossBar;
+    }
+
+    public void addPlayer(Player player) {
+        players.add(player);
+        if (bossBar != null) {
+            player.showBossBar(bossBar);
+        }
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player);
+        if (bossBar != null) {
+            player.hideBossBar(bossBar);
+        }
+    }
+
+    public void clearPlayers() {
+        players.clear();
+    }
+
+    public int getPlayerCount() {
+        return players.size();
     }
 }
