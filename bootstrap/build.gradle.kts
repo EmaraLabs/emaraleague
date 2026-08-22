@@ -27,6 +27,14 @@ dependencies {
     implementation(project(":infrastructure:config"))
     implementation(project(":infrastructure:logging"))
     implementation(project(":infrastructure:security"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    failOnNoDiscoveredTests = false
 }
 
 tasks.shadowJar {
