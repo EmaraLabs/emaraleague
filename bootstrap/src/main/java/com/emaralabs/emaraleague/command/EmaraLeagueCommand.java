@@ -12,6 +12,7 @@ import com.emaralabs.emaraleague.core.ui.InputValidator;
 import com.emaralabs.emaraleague.core.ui.MessageFormatter;
 import com.emaralabs.emaraleague.core.ui.MessageRegistry;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -607,16 +608,79 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(messages.get("help-header"));
         sender.sendMessage(Component.empty());
 
+        // Group commands by category
+        List<SubCommand> tournamentCmds = new ArrayList<>();
+        List<SubCommand> teamCmds = new ArrayList<>();
+        List<SubCommand> arenaCmds = new ArrayList<>();
+        List<SubCommand> infoCmds = new ArrayList<>();
+        List<SubCommand> adminCmds = new ArrayList<>();
+
         for (SubCommand sub : SUB_COMMANDS) {
-            if (sender.hasPermission(sub.permission) || sender.hasPermission("emaraleague.admin")) {
-                Component line = Component.text()
-                        .append(Component.text("  " + sub.usage, EmaraTheme.WARNING))
-                        .append(Component.text(" — ", EmaraTheme.MUTED))
-                        .append(Component.text(sub.description, EmaraTheme.INFO))
-                        .build();
-                sender.sendMessage(line);
+            if (!sender.hasPermission(sub.permission) && !sender.hasPermission("emaraleague.admin")) {
+                continue;
+            }
+            String name = sub.name.toLowerCase();
+            if (name.equals("create") || name.equals("delete") || name.equals("join") || name.equals("leave") || name.equals("start") || name.equals("info")) {
+                tournamentCmds.add(sub);
+            } else if (name.equals("team")) {
+                teamCmds.add(sub);
+            } else if (name.equals("arena")) {
+                arenaCmds.add(sub);
+            } else if (name.equals("history") || name.equals("stats")) {
+                infoCmds.add(sub);
+            } else if (name.equals("reload")) {
+                adminCmds.add(sub);
             }
         }
+
+        // Display by category
+        if (!tournamentCmds.isEmpty()) {
+            sender.sendMessage(Component.text("Tournament:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            for (SubCommand sub : tournamentCmds) {
+                sendHelpLine(sender, sub);
+            }
+            sender.sendMessage(Component.empty());
+        }
+
+        if (!teamCmds.isEmpty()) {
+            sender.sendMessage(Component.text("Teams:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            for (SubCommand sub : teamCmds) {
+                sendHelpLine(sender, sub);
+            }
+            sender.sendMessage(Component.empty());
+        }
+
+        if (!arenaCmds.isEmpty()) {
+            sender.sendMessage(Component.text("Arenas:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            for (SubCommand sub : arenaCmds) {
+                sendHelpLine(sender, sub);
+            }
+            sender.sendMessage(Component.empty());
+        }
+
+        if (!infoCmds.isEmpty()) {
+            sender.sendMessage(Component.text("Info:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            for (SubCommand sub : infoCmds) {
+                sendHelpLine(sender, sub);
+            }
+            sender.sendMessage(Component.empty());
+        }
+
+        if (!adminCmds.isEmpty()) {
+            sender.sendMessage(Component.text("Admin:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            for (SubCommand sub : adminCmds) {
+                sendHelpLine(sender, sub);
+            }
+        }
+    }
+
+    private void sendHelpLine(CommandSender sender, SubCommand sub) {
+        Component line = Component.text()
+                .append(Component.text("  " + sub.usage, EmaraTheme.WARNING))
+                .append(Component.text(" — ", EmaraTheme.MUTED))
+                .append(Component.text(sub.description, EmaraTheme.INFO))
+                .build();
+        sender.sendMessage(line);
     }
 
     @Override
