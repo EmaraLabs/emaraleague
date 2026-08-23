@@ -8,6 +8,8 @@ import com.emaralabs.emaraleague.core.bracket.Bracket;
 import com.emaralabs.emaraleague.core.bracket.BracketGenerator;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
+import com.emaralabs.emaraleague.core.player.PlayerStats;
+import com.emaralabs.emaraleague.core.player.SpectatorManager;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.*;
 import com.emaralabs.emaraleague.core.ui.MatchAnnouncer;
@@ -36,6 +38,9 @@ public final class MatchEngine {
     private MatchScoreboard scoreboard;
     private MatchAnnouncer announcer;
     private ArenaResetService arenaResetService;
+    private SpectatorManager spectatorManager;
+    private PlayerStats playerStats;
+    private final Map<UUID, MatchRecord> matchHistory = new ConcurrentHashMap<>();
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -72,6 +77,26 @@ public final class MatchEngine {
 
     public void setArenaResetService(ArenaResetService arenaResetService) {
         this.arenaResetService = arenaResetService;
+    }
+
+    public void setSpectatorManager(SpectatorManager spectatorManager) {
+        this.spectatorManager = spectatorManager;
+    }
+
+    public void setPlayerStats(PlayerStats playerStats) {
+        this.playerStats = playerStats;
+    }
+
+    public SpectatorManager getSpectatorManager() {
+        return spectatorManager;
+    }
+
+    public PlayerStats getPlayerStats() {
+        return playerStats;
+    }
+
+    public Map<UUID, MatchRecord> getMatchHistory() {
+        return Map.copyOf(matchHistory);
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -286,6 +311,35 @@ public final class MatchEngine {
 
         // Announce result to players
         announceResultToPlayers(matchId, winner);
+
+        // Record match history
+        UUID historyTournamentId = matchToTournament.get(matchId);
+        if (historyTournamentId != null) {
+            tournaments.getTournament(historyTournamentId).ifPresent(t -> {
+                MatchRecord record = MatchRecord.fromMatch(updated, t.name(), t.mode());
+                matchHistory.put(matchId, record);
+            });
+        }
+
+        // Update player stats
+        if (playerStats != null && historyTournamentId != null) {
+            tournaments.getTournament(historyTournamentId).ifPresent(t -> {
+                for (Team team : t.teams()) {
+                    for (UUID playerId : team.playerIds()) {
+                        if (team.id().equals(winner.id())) {
+                            playerStats.addWin(playerId);
+                        } else {
+                            playerStats.addLoss(playerId);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Clear spectators
+        if (spectatorManager != null) {
+            spectatorManager.clearMatchSpectators(matchId);
+        }
 
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);
