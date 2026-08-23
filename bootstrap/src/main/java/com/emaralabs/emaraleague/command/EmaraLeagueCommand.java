@@ -387,8 +387,27 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         try {
+            // Transition tournament state
             tournamentManager.transitionState(name, TournamentState.STARTING);
-            sender.sendMessage(messages.get("tournament-started", Map.of("name", name)));
+
+            // Generate bracket and start first match
+            com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket bracketGen =
+                    new com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket();
+            com.emaralabs.emaraleague.core.match.MatchEngine matchEngine =
+                    com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
+
+            com.emaralabs.emaraleague.core.bracket.Bracket bracket =
+                    matchEngine.generateBracket(name, bracketGen);
+
+            // Start first match
+            var firstMatch = matchEngine.getNextMatch(name);
+            if (firstMatch.isPresent()) {
+                matchEngine.startMatch(firstMatch.get().id());
+                sender.sendMessage(messages.get("tournament-started", Map.of("name", name)));
+                sender.sendMessage(MessageFormatter.info("First match starting..."));
+            } else {
+                sender.sendMessage(MessageFormatter.error("No matches available to start."));
+            }
         } catch (IllegalArgumentException e) {
             sender.sendMessage(MessageFormatter.error(e.getMessage()));
         } catch (IllegalStateException e) {
