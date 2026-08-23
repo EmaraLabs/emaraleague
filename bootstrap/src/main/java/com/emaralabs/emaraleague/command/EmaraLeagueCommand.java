@@ -40,6 +40,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
     private static final List<SubCommand> SUB_COMMANDS = List.of(
             new SubCommand("create", "/emaraleague create <name> <mode>", "Create a new tournament", "emaraleague.create"),
+            new SubCommand("delete", "/emaraleague delete <name>", "Delete a tournament", "emaraleague.admin"),
             new SubCommand("join", "/emaraleague join <tournament>", "Join a tournament", "emaraleague.play"),
             new SubCommand("leave", "/emaraleague leave", "Leave your current tournament", "emaraleague.play"),
             new SubCommand("team", "/emaraleague team <join|leave|list>", "Manage teams", "emaraleague.play"),
@@ -85,6 +86,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
         switch (sub) {
             case "create" -> handleCreate(sender, args);
+            case "delete" -> handleDelete(sender, args);
             case "join" -> handleJoin(sender, args);
             case "leave" -> handleLeave(sender);
             case "team" -> handleTeam(sender, args);
@@ -209,6 +211,22 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         sender.sendMessage(MessageFormatter.error("You are not in any tournament."));
+    }
+
+    private void handleDelete(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague delete <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        if (!tournamentManager.exists(name)) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+            return;
+        }
+
+        tournamentManager.deleteTournament(name);
+        sender.sendMessage(MessageFormatter.success("Tournament '" + name + "' deleted."));
     }
 
     private void handleTeam(CommandSender sender, String[] args) {
@@ -506,7 +524,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (args[0].toLowerCase()) {
                 case "create" -> filterCompletions(List.of("<name>"), args[1]);
-                case "join", "start", "info", "team" -> filterCompletions(getTournamentNames(), args[1]);
+                case "delete", "join", "start", "info", "team" -> filterCompletions(getTournamentNames(), args[1]);
                 case "arena" -> filterCompletions(List.of("create", "setcenter", "setlobby", "list", "delete"), args[1]);
                 default -> Collections.emptyList();
             };

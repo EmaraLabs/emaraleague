@@ -4,13 +4,16 @@ import com.emaralabs.emaraleague.api.EmaraAddon;
 import com.emaralabs.emaraleague.api.EmaraLeagueAPI;
 import com.emaralabs.emaraleague.command.EmaraLeagueCommand;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
+import com.emaralabs.emaraleague.core.arena.ArenaPersistence;
 import com.emaralabs.emaraleague.core.arena.ArenaResetService;
 import com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.match.MatchCountdown;
 import com.emaralabs.emaraleague.core.match.MatchEngine;
+import com.emaralabs.emaraleague.core.match.MatchHistoryPersistence;
 import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
+import com.emaralabs.emaraleague.core.player.PlayerStatsPersistence;
 import com.emaralabs.emaraleague.core.scheduler.PaperScheduler;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
@@ -46,6 +49,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
     private TournamentRepository tournamentRepository;
     private WinConditionEvaluator winConditionEvaluator;
     private MatchCountdown matchCountdown;
+    private ArenaPersistence arenaPersistence;
+    private MatchHistoryPersistence matchHistoryPersistence;
+    private PlayerStatsPersistence playerStatsPersistence;
     private final Map<String, EmaraAddon> addons = new ConcurrentHashMap<>();
 
     @Override
@@ -58,6 +64,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
                 getDataFolder().mkdirs();
             }
 
+            // Copy default config.yml if not exists
+            saveDefaultConfig();
+
             String dbPath = getDataFolder().getAbsolutePath() + "/emaraleague.db";
             databaseManager = new DatabaseManager("jdbc:sqlite:" + dbPath, "", "");
             databaseManager.initializeSchema();
@@ -68,6 +77,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             tournamentManager.loadFromDatabase();
 
             arenaManager = new ArenaManager();
+            arenaPersistence = new ArenaPersistence(this);
+            arenaPersistence.load(arenaManager);
+
             playerSessionManager = new PlayerSessionManager();
             teleportService = new TeleportService();
             matchEngine = new MatchEngine(tournamentManager, arenaManager);
@@ -76,6 +88,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             gameModeRegistry = new GameModeRegistry();
             winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
             matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
+
+            matchHistoryPersistence = new MatchHistoryPersistence(this);
+            playerStatsPersistence = new PlayerStatsPersistence(this);
 
             MatchScoreboard scoreboard = new MatchScoreboard(matchEngine);
             matchEngine.setScoreboard(scoreboard);
@@ -125,6 +140,14 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
         // Disable all addons first
         for (EmaraAddon addon : List.copyOf(addons.values())) {
             unregisterAddon(addon.getId());
+        }
+
+        // Save persistence data
+        if (arenaPersistence != null) {
+            arenaPersistence.save(arenaManager);
+        }
+        if (matchHistoryPersistence != null && matchEngine != null) {
+            matchHistoryPersistence.save(List.copyOf(matchEngine.getMatchHistory().values()));
         }
 
         if (tournamentRepository != null) {
