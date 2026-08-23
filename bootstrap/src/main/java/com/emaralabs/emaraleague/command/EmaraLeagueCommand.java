@@ -44,11 +44,13 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             new SubCommand("join", "/emaraleague join <tournament>", "Join a tournament", "emaraleague.play"),
             new SubCommand("leave", "/emaraleague leave", "Leave your current tournament", "emaraleague.play"),
             new SubCommand("team", "/emaraleague team <join|leave|list>", "Manage teams", "emaraleague.play"),
-            new SubCommand("arena", "/emaraleague arena <create|setcenter|setlobby|list|delete>", "Manage arenas", "emaraleague.admin"),
             new SubCommand("start", "/emaraleague start <tournament>", "Start a tournament", "emaraleague.admin"),
-            new SubCommand("info", "/emaraleague info <tournament>", "View tournament details", "emaraleague.use"),
-            new SubCommand("help", "/emaraleague help", "Show this menu", "emaraleague.use"),
-            new SubCommand("reload", "/emaraleague reload", "Reload configuration", "emaraleague.admin")
+            new SubCommand("info", "/emaraleague info <tournament>", "View tournament info", "emaraleague.use"),
+            new SubCommand("arena", "/emaraleague arena <create|setcenter|setlobby|list|delete>", "Manage arenas", "emaraleague.admin"),
+            new SubCommand("history", "/emaraleague history", "View match history", "emaraleague.use"),
+            new SubCommand("stats", "/emaraleague stats [player]", "View player statistics", "emaraleague.use"),
+            new SubCommand("help", "/emaraleague help [command]", "Show help", "emaraleague.use"),
+            new SubCommand("reload", "/emaraleague reload", "Reload configuration", "emaraleague.reload")
     );
 
     public EmaraLeagueCommand(Plugin plugin, TournamentManager tournamentManager, ArenaManager arenaManager) {
@@ -90,9 +92,11 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             case "join" -> handleJoin(sender, args);
             case "leave" -> handleLeave(sender);
             case "team" -> handleTeam(sender, args);
-            case "arena" -> handleArena(sender, args);
             case "start" -> handleStart(sender, args);
             case "info" -> handleInfo(sender, args);
+            case "arena" -> handleArena(sender, args);
+            case "history" -> handleHistory(sender);
+            case "stats" -> handleStats(sender, args);
             case "help" -> sendHelp(sender);
             case "reload" -> handleReload(sender);
             default -> sender.sendMessage(messages.get("unknown-command"));
@@ -227,6 +231,24 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
         tournamentManager.deleteTournament(name);
         sender.sendMessage(MessageFormatter.success("Tournament '" + name + "' deleted."));
+    }
+
+    private void handleHistory(CommandSender sender) {
+        // TODO: Wire to MatchHistoryPersistence for persisted history
+        sender.sendMessage(MessageFormatter.info("Match history feature coming soon."));
+        sender.sendMessage(MessageFormatter.muted("This will show your recent matches."));
+    }
+
+    private void handleStats(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+
+        // TODO: Wire to PlayerStats for real statistics
+        sender.sendMessage(MessageFormatter.info("Statistics for " + player.getName()));
+        sender.sendMessage(MessageFormatter.muted("Wins: 0 | Losses: 0 | Kills: 0 | Deaths: 0"));
+        sender.sendMessage(MessageFormatter.muted("Full statistics coming soon."));
     }
 
     private void handleTeam(CommandSender sender, String[] args) {
