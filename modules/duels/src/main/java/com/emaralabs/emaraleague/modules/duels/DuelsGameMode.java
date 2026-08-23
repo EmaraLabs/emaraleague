@@ -22,10 +22,13 @@ public class DuelsGameMode implements GameMode {
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 2;
 
-    private final Map<UUID, Integer> playerKills = new HashMap<>();
-    private final Map<UUID, Integer> playerDeaths = new HashMap<>();
-    private final Set<UUID> eliminated = new HashSet<>();
-    private final Map<UUID, UUID> playerToTeam = new HashMap<>();
+    // Per-match state: matchId -> state map
+    private final Map<UUID, Map<UUID, Integer>> matchPlayerKills = new HashMap<>();
+    private final Map<UUID, Map<UUID, Integer>> matchPlayerDeaths = new HashMap<>();
+    private final Map<UUID, Set<UUID>> matchEliminated = new HashMap<>();
+    private final Map<UUID, Map<UUID, UUID>> matchPlayerToTeam = new HashMap<>();
+
+    private UUID currentMatchId;
 
     @Override
     public String getId() {
@@ -49,10 +52,11 @@ public class DuelsGameMode implements GameMode {
 
     @Override
     public void onMatchStart(Match match) {
-        playerKills.clear();
-        playerDeaths.clear();
-        eliminated.clear();
-        playerToTeam.clear();
+        currentMatchId = match.id();
+        matchPlayerKills.put(match.id(), new HashMap<>());
+        matchPlayerDeaths.put(match.id(), new HashMap<>());
+        matchEliminated.put(match.id(), new HashSet<>());
+        matchPlayerToTeam.put(match.id(), new HashMap<>());
     }
 
     @Override
@@ -61,10 +65,13 @@ public class DuelsGameMode implements GameMode {
 
     @Override
     public void onMatchEnd(Match match, Team winner) {
-        playerKills.clear();
-        playerDeaths.clear();
-        eliminated.clear();
-        playerToTeam.clear();
+        matchPlayerKills.remove(match.id());
+        matchPlayerDeaths.remove(match.id());
+        matchEliminated.remove(match.id());
+        matchPlayerToTeam.remove(match.id());
+        if (match.id().equals(currentMatchId)) {
+            currentMatchId = null;
+        }
     }
 
     @Override
@@ -72,47 +79,65 @@ public class DuelsGameMode implements GameMode {
         return WinCondition.LAST_TEAM_STANDING;
     }
 
+    private Map<UUID, Integer> getKillsMap() {
+        return matchPlayerKills.getOrDefault(currentMatchId, new HashMap<>());
+    }
+
+    private Map<UUID, Integer> getDeathsMap() {
+        return matchPlayerDeaths.getOrDefault(currentMatchId, new HashMap<>());
+    }
+
+    private Set<UUID> getEliminatedSet() {
+        return matchEliminated.getOrDefault(currentMatchId, new HashSet<>());
+    }
+
+    private Map<UUID, UUID> getTeamMap() {
+        return matchPlayerToTeam.getOrDefault(currentMatchId, new HashMap<>());
+    }
+
     public void onPlayerDeath(EntityDeathEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            UUID id = player.getUniqueId();
-            playerDeaths.merge(id, 1, Integer::sum);
-            eliminated.add(id);
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
         }
+        markEliminated(player.getUniqueId());
+    }
+
+    public void markEliminated(UUID playerId) {
+        getEliminatedSet().add(playerId);
+        getDeathsMap().merge(playerId, 1, Integer::sum);
     }
 
     public void onPlayerQuit(PlayerQuitEvent event) {
-        UUID id = event.getPlayer().getUniqueId();
-        playerDeaths.merge(id, 1, Integer::sum);
-        eliminated.add(id);
-    }
-
-    public boolean isEliminated(UUID playerId) {
-        return eliminated.contains(playerId);
-    }
-
-    public int getAliveCount(Match match) {
-        return 2 - eliminated.size();
+        markEliminated(event.getPlayer().getUniqueId());
     }
 
     public int getKills(UUID playerId) {
-        return playerKills.getOrDefault(playerId, 0);
+        return getKillsMap().getOrDefault(playerId, 0);
     }
 
     public int getDeaths(UUID playerId) {
-        return playerDeaths.getOrDefault(playerId, 0);
+        return getDeathsMap().getOrDefault(playerId, 0);
+    }
+
+    public boolean isEliminated(UUID playerId) {
+        return getEliminatedSet().contains(playerId);
+    }
+
+    public int getAliveCount(Match match) {
+        return 2 - getEliminatedSet().size();
     }
 
     public void assignPlayerToTeam(UUID playerId, UUID teamId) {
-        playerToTeam.put(playerId, teamId);
+        getTeamMap().put(playerId, teamId);
     }
 
     public Optional<UUID> getTeamForPlayer(UUID playerId) {
-        return Optional.ofNullable(playerToTeam.get(playerId));
+        return Optional.ofNullable(getTeamMap().get(playerId));
     }
 
     public boolean isTeamEliminated(UUID teamId) {
-        return playerToTeam.entrySet().stream()
+        return getTeamMap().entrySet().stream()
                 .filter(e -> e.getValue().equals(teamId))
-                .allMatch(e -> eliminated.contains(e.getKey()));
+                .allMatch(e -> getEliminatedSet().contains(e.getKey()));
     }
 }

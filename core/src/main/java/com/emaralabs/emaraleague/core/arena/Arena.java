@@ -11,6 +11,8 @@ public class Arena {
     private ArenaState state;
     private Location center;
     private Location lobbySpawn;
+    private Location spawnA;
+    private Location spawnB;
 
     public Arena(String name) {
         this.id = UUID.randomUUID();
@@ -49,6 +51,26 @@ public class Arena {
 
     public void setLobbySpawn(Location lobbySpawn) {
         this.lobbySpawn = lobbySpawn;
+    }
+
+    public Location getSpawnA() {
+        return spawnA != null ? spawnA : center;
+    }
+
+    public void setSpawnA(Location spawnA) {
+        this.spawnA = spawnA;
+    }
+
+    public Location getSpawnB() {
+        return spawnB != null ? spawnB : center;
+    }
+
+    public void setSpawnB(Location spawnB) {
+        this.spawnB = spawnB;
+    }
+
+    public boolean hasSpawnPoints() {
+        return spawnA != null && spawnB != null;
     }
 
     public boolean canTransitionTo(ArenaState next) {

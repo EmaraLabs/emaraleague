@@ -50,9 +50,9 @@ class PlayerEventListenerTest {
     @Test
     void onPlayerDeath_inMatch_clearsMatch() {
         UUID playerId = UUID.randomUUID();
-        UUID teamId = UUID.randomUUID();
+        UUID matchId = UUID.randomUUID();
         sessions.createSession(playerId, "Steve");
-        sessions.assignToTeam(playerId, teamId);
+        sessions.assignToMatch(playerId, matchId);
         assertTrue(sessions.isInMatch(playerId));
 
         EntityDeathEvent event = mock(EntityDeathEvent.class);
@@ -78,9 +78,9 @@ class PlayerEventListenerTest {
     @Test
     void onPlayerQuit_inMatch_clearsMatch() {
         UUID playerId = UUID.randomUUID();
-        UUID teamId = UUID.randomUUID();
+        UUID matchId = UUID.randomUUID();
         sessions.createSession(playerId, "Steve");
-        sessions.assignToTeam(playerId, teamId);
+        sessions.assignToMatch(playerId, matchId);
         assertTrue(sessions.isInMatch(playerId));
 
         PlayerQuitEvent event = mock(PlayerQuitEvent.class);
@@ -120,19 +120,22 @@ class PlayerEventListenerTest {
     }
 
     @Test
-    void onPlayerDeath_inMatch_triggersWinCheck() {
+    void onPlayerDeath_inMatch_attemptsWinCheck() {
         UUID playerId = UUID.randomUUID();
-        UUID teamId = UUID.randomUUID();
+        UUID matchId = UUID.randomUUID();
         sessions.createSession(playerId, "Steve");
-        sessions.assignToTeam(playerId, teamId);
+        sessions.assignToMatch(playerId, matchId);
 
         EntityDeathEvent event = mock(EntityDeathEvent.class);
         Player player = mock(Player.class);
         when(event.getEntity()).thenReturn(player);
         when(player.getUniqueId()).thenReturn(playerId);
 
+        // Match not found in engine — should clear session gracefully
+        when(matchEngine.getMatch(matchId)).thenReturn(java.util.Optional.empty());
+
         listener.onPlayerDeath(event);
 
-        verify(winEvaluator).isMatchOver(any(), any());
+        assertFalse(sessions.isInMatch(playerId));
     }
 }

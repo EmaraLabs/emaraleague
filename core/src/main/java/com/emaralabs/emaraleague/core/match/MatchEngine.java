@@ -15,6 +15,7 @@ import com.emaralabs.emaraleague.core.tournament.*;
 import com.emaralabs.emaraleague.core.ui.MatchAnnouncer;
 import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -121,6 +122,9 @@ public final class MatchEngine {
         // Auto-assign arena
         assignArenaToMatch(matchId);
 
+        // Assign players to match session
+        assignPlayersToMatch(matchId);
+
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);
             tournaments.getTournament(tournamentId).ifPresent(t ->
@@ -138,6 +142,30 @@ public final class MatchEngine {
         }
 
         return updated;
+    }
+
+    private void assignPlayersToMatch(UUID matchId) {
+        if (playerSessions == null) {
+            return;
+        }
+        UUID tournamentId = matchToTournament.get(matchId);
+        if (tournamentId == null) {
+            return;
+        }
+        tournaments.getTournament(tournamentId).ifPresent(t -> {
+            Match match = matches.get(matchId);
+            if (match == null) {
+                return;
+            }
+            for (UUID playerId : match.teamA().playerIds()) {
+                playerSessions.assignToMatch(playerId, matchId);
+                playerSessions.assignToTeam(playerId, match.teamA().id());
+            }
+            for (UUID playerId : match.teamB().playerIds()) {
+                playerSessions.assignToMatch(playerId, matchId);
+                playerSessions.assignToTeam(playerId, match.teamB().id());
+            }
+        });
     }
 
     private void showScoreboardToPlayers(UUID matchId, Match match) {
@@ -238,12 +266,20 @@ public final class MatchEngine {
         }
 
         tournaments.getTournament(tournamentId).ifPresent(t -> {
-            for (Team team : t.teams()) {
-                for (UUID playerId : team.playerIds()) {
-                    Player player = Bukkit.getPlayer(playerId);
-                    if (player != null && player.isOnline()) {
-                        teleportService.teleportToArena(player, arena.get());
-                    }
+            // Team A to spawnA, Team B to spawnB
+            Location spawnA = arena.get().getSpawnA();
+            Location spawnB = arena.get().getSpawnB();
+
+            for (UUID playerId : match.teamA().playerIds()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    player.teleport(spawnA);
+                }
+            }
+            for (UUID playerId : match.teamB().playerIds()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    player.teleport(spawnB);
                 }
             }
         });

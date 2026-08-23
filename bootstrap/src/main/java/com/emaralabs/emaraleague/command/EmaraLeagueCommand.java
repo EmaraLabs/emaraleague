@@ -382,19 +382,17 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         // Check for solo mode (testing)
         boolean soloMode = args.length >= 3 && args[2].equalsIgnoreCase("solo");
         if (soloMode) {
-            // Create dummy team with fake player for testing
             Tournament tournament = tournamentManager.getTournament(name).orElse(null);
             if (tournament == null) {
                 sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
                 return;
             }
             if (tournament.teams().size() < 2) {
-                // Create second team with dummy player
                 Team dummyTeam = new Team("Dummy", 2);
                 tournamentManager.addTeam(name, dummyTeam);
-                tournamentManager.assignPlayerToTeam(name, dummyTeam.id(), UUID.randomUUID());
             }
             sender.sendMessage(MessageFormatter.info("Starting tournament in SOLO mode (testing only)"));
+            sender.sendMessage(MessageFormatter.muted("Dummy team created — no real players assigned."));
         } else {
             // Normal validation
             if (!tournamentManager.canStart(name)) {
@@ -439,12 +437,13 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         switch (args[1].toLowerCase()) {
-            case "create" -> handleArenaCreate(sender, args);
-            case "setcenter" -> handleArenaSetCenter(sender, args);
-            case "setlobby" -> handleArenaSetLobby(sender, args);
-            case "list" -> handleArenaList(sender);
-            case "delete" -> handleArenaDelete(sender, args);
-            default -> sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena <create|setcenter|setlobby|list|delete>")));
+        case "create" -> handleArenaCreate(sender, args);
+        case "setcenter" -> handleArenaSetCenter(sender, args);
+        case "setlobby" -> handleArenaSetLobby(sender, args);
+        case "setspawn" -> handleArenaSetSpawn(sender, args);
+        case "list" -> handleArenaList(sender);
+        case "delete" -> handleArenaDelete(sender, args);
+        default -> sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena <create|setcenter|setlobby|setspawn|list|delete>")));
         }
     }
 
@@ -501,14 +500,43 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         String name = args[2];
-        Optional<Arena> arena = arenaManager.getArena(name);
-        if (arena.isEmpty()) {
+        var arenaOpt = arenaManager.getArena(name);
+        if (arenaOpt.isEmpty()) {
             sender.sendMessage(MessageFormatter.error("Arena not found: " + name));
             return;
         }
 
-        arena.get().setLobbySpawn(player.getLocation());
-        sender.sendMessage(MessageFormatter.success("Arena '" + name + "' lobby spawn set to your location."));
+        arenaOpt.get().setLobbySpawn(player.getLocation());
+        sender.sendMessage(MessageFormatter.success("Lobby spawn set for arena '" + name + "'."));
+    }
+
+    private void handleArenaSetSpawn(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+        if (args.length < 4) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague arena setspawn <name> <a|b>")));
+            return;
+        }
+
+        String name = args[2];
+        String team = args[3].toLowerCase();
+        var arenaOpt = arenaManager.getArena(name);
+        if (arenaOpt.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("Arena not found: " + name));
+            return;
+        }
+
+        if (team.equals("a")) {
+            arenaOpt.get().setSpawnA(player.getLocation());
+            sender.sendMessage(MessageFormatter.success("Team A spawn set for arena '" + name + "'."));
+        } else if (team.equals("b")) {
+            arenaOpt.get().setSpawnB(player.getLocation());
+            sender.sendMessage(MessageFormatter.success("Team B spawn set for arena '" + name + "'."));
+        } else {
+            sender.sendMessage(MessageFormatter.error("Invalid team. Use 'a' or 'b'."));
+        }
     }
 
     private void handleArenaList(CommandSender sender) {

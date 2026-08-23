@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class PlayerSessionManager {
 
     private final Map<UUID, PlayerSession> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, UUID> playerToMatch = new ConcurrentHashMap<>();
 
     public PlayerSession createSession(UUID playerId, String playerName) {
         PlayerSession session = new PlayerSession(playerId, playerName);
@@ -21,6 +22,7 @@ public final class PlayerSessionManager {
 
     public void removeSession(UUID playerId) {
         sessions.remove(playerId);
+        playerToMatch.remove(playerId);
     }
 
     public void assignToTeam(UUID playerId, UUID teamId) {
@@ -35,11 +37,19 @@ public final class PlayerSessionManager {
         return getSession(playerId).map(PlayerSession::getTeamId);
     }
 
+    public void assignToMatch(UUID playerId, UUID matchId) {
+        playerToMatch.put(playerId, matchId);
+    }
+
+    public Optional<UUID> getMatchId(UUID playerId) {
+        return Optional.ofNullable(playerToMatch.get(playerId));
+    }
+
     public boolean isInMatch(UUID playerId) {
-        return getSession(playerId).map(s -> s.getTeamId() != null).orElse(false);
+        return playerToMatch.containsKey(playerId);
     }
 
     public void clearMatch(UUID playerId) {
-        getSession(playerId).ifPresent(s -> s.setTeamId(null));
+        playerToMatch.remove(playerId);
     }
 }

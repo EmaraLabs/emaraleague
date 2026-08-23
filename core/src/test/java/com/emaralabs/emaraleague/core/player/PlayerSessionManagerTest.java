@@ -91,15 +91,16 @@ class PlayerSessionManagerTest {
     }
 
     @Test
-    void isInMatch_withTeam_returnsTrue() {
+    void isInMatch_withMatchAssignment_returnsTrue() {
         UUID playerId = UUID.randomUUID();
+        UUID matchId = UUID.randomUUID();
         manager.createSession(playerId, "Steve");
-        manager.assignToTeam(playerId, UUID.randomUUID());
+        manager.assignToMatch(playerId, matchId);
         assertTrue(manager.isInMatch(playerId));
     }
 
     @Test
-    void isInMatch_noTeam_returnsFalse() {
+    void isInMatch_noAssignment_returnsFalse() {
         UUID id = UUID.randomUUID();
         manager.createSession(id, "Steve");
         assertFalse(manager.isInMatch(id));
@@ -111,11 +112,11 @@ class PlayerSessionManagerTest {
     }
 
     @Test
-    void clearMatch_removesTeam() {
+    void clearMatch_removesAssignment() {
         UUID playerId = UUID.randomUUID();
-        UUID teamId = UUID.randomUUID();
+        UUID matchId = UUID.randomUUID();
         manager.createSession(playerId, "Steve");
-        manager.assignToTeam(playerId, teamId);
+        manager.assignToMatch(playerId, matchId);
         assertTrue(manager.isInMatch(playerId));
         manager.clearMatch(playerId);
         assertFalse(manager.isInMatch(playerId));
@@ -125,5 +126,21 @@ class PlayerSessionManagerTest {
     void clearMatch_nonExistentPlayer_doesNothing() {
         manager.clearMatch(UUID.randomUUID());
         // No exception thrown
+    }
+
+    @Test
+    void getMatchId_withAssignment_returnsMatchId() {
+        UUID playerId = UUID.randomUUID();
+        UUID matchId = UUID.randomUUID();
+        manager.createSession(playerId, "Steve");
+        manager.assignToMatch(playerId, matchId);
+        assertEquals(matchId, manager.getMatchId(playerId).orElse(null));
+    }
+
+    @Test
+    void getMatchId_noAssignment_returnsEmpty() {
+        UUID id = UUID.randomUUID();
+        manager.createSession(id, "Steve");
+        assertTrue(manager.getMatchId(id).isEmpty());
     }
 }
