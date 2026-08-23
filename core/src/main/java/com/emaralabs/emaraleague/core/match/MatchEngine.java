@@ -9,6 +9,7 @@ import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.*;
+import com.emaralabs.emaraleague.core.ui.MatchAnnouncer;
 import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -32,6 +33,7 @@ public final class MatchEngine {
     private PlayerSessionManager playerSessions;
     private BracketGenerator bracketGenerator;
     private MatchScoreboard scoreboard;
+    private MatchAnnouncer announcer;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -60,6 +62,10 @@ public final class MatchEngine {
 
     public void setScoreboard(MatchScoreboard scoreboard) {
         this.scoreboard = scoreboard;
+    }
+
+    public void setAnnouncer(MatchAnnouncer announcer) {
+        this.announcer = announcer;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -123,6 +129,50 @@ public final class MatchEngine {
         });
     }
 
+    private void announceMatchStartToPlayers(UUID matchId) {
+        if (announcer == null) {
+            return;
+        }
+        UUID tournamentId = matchToTournament.get(matchId);
+        if (tournamentId == null) {
+            return;
+        }
+        tournaments.getTournament(tournamentId).ifPresent(t -> {
+            for (Team team : t.teams()) {
+                for (UUID playerId : team.playerIds()) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        announcer.announceMatchStart(player);
+                    }
+                }
+            }
+        });
+    }
+
+    private void announceResultToPlayers(UUID matchId, Team winner) {
+        if (announcer == null) {
+            return;
+        }
+        UUID tournamentId = matchToTournament.get(matchId);
+        if (tournamentId == null) {
+            return;
+        }
+        tournaments.getTournament(tournamentId).ifPresent(t -> {
+            for (Team team : t.teams()) {
+                for (UUID playerId : team.playerIds()) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        if (team.id().equals(winner.id())) {
+                            announcer.announceVictory(player, winner);
+                        } else {
+                            announcer.announceDefeat(player, team);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     private void assignArenaToMatch(UUID matchId) {
         List<Arena> available = arenas.getAvailableArenas();
         if (available.isEmpty()) {
@@ -177,6 +227,9 @@ public final class MatchEngine {
         Match updated = match.withState(MatchState.INGAME);
         matches.put(matchId, updated);
 
+        // Announce match start to players
+        announceMatchStartToPlayers(matchId);
+
         // Transition arena to INGAME
         UUID arenaId = matchToArena.get(matchId);
         if (arenaId != null) {
@@ -218,6 +271,9 @@ public final class MatchEngine {
         if (scoreboard != null) {
             scoreboard.hideFromAll();
         }
+
+        // Announce result to players
+        announceResultToPlayers(matchId, winner);
 
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);

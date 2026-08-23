@@ -11,6 +11,7 @@ import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.scheduler.PaperScheduler;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
+import com.emaralabs.emaraleague.core.ui.MatchAnnouncer;
 import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import com.emaralabs.emaraleague.infrastructure.database.DatabaseManager;
 import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
@@ -70,6 +71,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
             MatchScoreboard scoreboard = new MatchScoreboard(matchEngine);
             matchEngine.setScoreboard(scoreboard);
+
+            MatchAnnouncer announcer = new MatchAnnouncer();
+            matchEngine.setAnnouncer(announcer);
 
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());
