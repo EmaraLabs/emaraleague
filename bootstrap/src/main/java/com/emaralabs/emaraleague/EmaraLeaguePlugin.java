@@ -2,6 +2,7 @@ package com.emaralabs.emaraleague;
 
 import com.emaralabs.emaraleague.command.EmaraLeagueCommand;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
+import com.emaralabs.emaraleague.core.arena.ArenaResetService;
 import com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.match.MatchCountdown;
@@ -74,6 +75,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
             MatchAnnouncer announcer = new MatchAnnouncer();
             matchEngine.setAnnouncer(announcer);
+
+            ArenaResetService arenaResetService = new ArenaResetService();
+            matchEngine.setArenaResetService(arenaResetService);
 
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());

@@ -2,6 +2,7 @@ package com.emaralabs.emaraleague.core.match;
 
 import com.emaralabs.emaraleague.core.arena.Arena;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
+import com.emaralabs.emaraleague.core.arena.ArenaResetService;
 import com.emaralabs.emaraleague.core.arena.ArenaState;
 import com.emaralabs.emaraleague.core.bracket.Bracket;
 import com.emaralabs.emaraleague.core.bracket.BracketGenerator;
@@ -34,6 +35,7 @@ public final class MatchEngine {
     private BracketGenerator bracketGenerator;
     private MatchScoreboard scoreboard;
     private MatchAnnouncer announcer;
+    private ArenaResetService arenaResetService;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -66,6 +68,10 @@ public final class MatchEngine {
 
     public void setAnnouncer(MatchAnnouncer announcer) {
         this.announcer = announcer;
+    }
+
+    public void setArenaResetService(ArenaResetService arenaResetService) {
+        this.arenaResetService = arenaResetService;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -259,6 +265,12 @@ public final class MatchEngine {
                 if (arena.getState() == ArenaState.INGAME) {
                     arenas.transitionArena(arena.getName(), ArenaState.ENDING);
                     arenas.transitionArena(arena.getName(), ArenaState.RESETTING);
+
+                    // Restore arena blocks (Spleef, etc.)
+                    if (arenaResetService != null && arenaResetService.hasTrackedChanges(arena)) {
+                        arenaResetService.restoreArena(arena);
+                    }
+
                     arenas.transitionArena(arena.getName(), ArenaState.LOBBY);
                 }
             });
