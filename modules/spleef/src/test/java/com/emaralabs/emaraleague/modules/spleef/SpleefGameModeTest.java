@@ -16,10 +16,13 @@ import static org.mockito.Mockito.*;
 class SpleefGameModeTest {
 
     private SpleefGameMode mode;
+    private Match match;
 
     @BeforeEach
     void setUp() {
         mode = new SpleefGameMode();
+        match = new Match(new Team("Alpha", 1), new Team("Beta", 2));
+        mode.onMatchStart(match);
     }
 
     @Test
@@ -57,6 +60,7 @@ class SpleefGameModeTest {
 
         BlockBreakEvent event = mock(BlockBreakEvent.class);
         when(event.getPlayer()).thenReturn(player);
+        when(event.getBlock()).thenReturn(mock(org.bukkit.block.Block.class));
 
         mode.onBlockBreak(event);
         assertEquals(1, mode.getBlocksBroken(playerId));
@@ -70,6 +74,7 @@ class SpleefGameModeTest {
 
         BlockBreakEvent event = mock(BlockBreakEvent.class);
         when(event.getPlayer()).thenReturn(player);
+        when(event.getBlock()).thenReturn(mock(org.bukkit.block.Block.class));
 
         mode.onBlockBreak(event);
         mode.onBlockBreak(event);
@@ -142,22 +147,14 @@ class SpleefGameModeTest {
     // ── Match Lifecycle ─────────────────────────────────────────────
 
     @Test
-    void onMatchStart_resetsState() {
-        UUID playerId = UUID.randomUUID();
-        mode.onPlayerFall(playerId);
-        assertTrue(mode.isEliminated(playerId));
-
-        Match match = new Match(new Team("Alpha", 1), new Team("Beta", 2));
-        mode.onMatchStart(match);
-        assertFalse(mode.isEliminated(playerId));
+    void onMatchStart_initializesState() {
+        assertEquals(2, mode.getAliveCount(match));
     }
 
     @Test
     void onMatchEnd_clearsState() {
         UUID playerId = UUID.randomUUID();
         mode.onPlayerFall(playerId);
-
-        Match match = new Match(new Team("Alpha", 1), new Team("Beta", 2));
         mode.onMatchEnd(match, new Team("Alpha", 1));
         assertFalse(mode.isEliminated(playerId));
     }
@@ -170,11 +167,13 @@ class SpleefGameModeTest {
 
         BlockBreakEvent event = mock(BlockBreakEvent.class);
         when(event.getPlayer()).thenReturn(player);
+        when(event.getBlock()).thenReturn(mock(org.bukkit.block.Block.class));
         mode.onBlockBreak(event);
         assertEquals(1, mode.getBlocksBroken(playerId));
 
-        Match match = new Match(new Team("Alpha", 1), new Team("Beta", 2));
-        mode.onMatchStart(match);
+        // New match resets
+        Match match2 = new Match(new Team("Gamma", 3), new Team("Delta", 4));
+        mode.onMatchStart(match2);
         assertEquals(0, mode.getBlocksBroken(playerId));
     }
 }

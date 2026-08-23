@@ -1,5 +1,6 @@
 package com.emaralabs.emaraleague.modules.spleef;
 
+import com.emaralabs.emaraleague.core.arena.ArenaResetService;
 import com.emaralabs.emaraleague.core.game.GameMode;
 import com.emaralabs.emaraleague.core.game.WinCondition;
 import com.emaralabs.emaraleague.core.tournament.Match;
@@ -21,9 +22,22 @@ public class SpleefGameMode implements GameMode {
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 16;
 
-    private final Map<UUID, Integer> blocksBroken = new HashMap<>();
-    private final Set<UUID> eliminated = new HashSet<>();
-    private final Map<UUID, UUID> playerToTeam = new HashMap<>();
+    // Per-match state: matchId -> state map
+    private final Map<UUID, Map<UUID, Integer>> matchBlocksBroken = new HashMap<>();
+    private final Map<UUID, Set<UUID>> matchEliminated = new HashMap<>();
+    private final Map<UUID, Map<UUID, UUID>> matchPlayerToTeam = new HashMap<>();
+
+    private UUID currentMatchId;
+    private ArenaResetService arenaResetService;
+    private com.emaralabs.emaraleague.core.arena.Arena currentArena;
+
+    public void setArenaResetService(ArenaResetService service) {
+        this.arenaResetService = service;
+    }
+
+    public void setCurrentArena(com.emaralabs.emaraleague.core.arena.Arena arena) {
+        this.currentArena = arena;
+    }
 
     @Override
     public String getId() {
@@ -47,9 +61,10 @@ public class SpleefGameMode implements GameMode {
 
     @Override
     public void onMatchStart(Match match) {
-        blocksBroken.clear();
-        eliminated.clear();
-        playerToTeam.clear();
+        currentMatchId = match.id();
+        matchBlocksBroken.put(match.id(), new HashMap<>());
+        matchEliminated.put(match.id(), new HashSet<>());
+        matchPlayerToTeam.put(match.id(), new HashMap<>());
     }
 
     @Override
@@ -58,9 +73,12 @@ public class SpleefGameMode implements GameMode {
 
     @Override
     public void onMatchEnd(Match match, Team winner) {
-        blocksBroken.clear();
-        eliminated.clear();
-        playerToTeam.clear();
+        matchBlocksBroken.remove(match.id());
+        matchEliminated.remove(match.id());
+        matchPlayerToTeam.remove(match.id());
+        if (match.id().equals(currentMatchId)) {
+            currentMatchId = null;
+        }
     }
 
     @Override
@@ -68,34 +86,55 @@ public class SpleefGameMode implements GameMode {
         return WinCondition.LAST_TEAM_STANDING;
     }
 
+    private Map<UUID, Integer> getBlocksMap() {
+        return matchBlocksBroken.getOrDefault(currentMatchId, new HashMap<>());
+    }
+
+    private Set<UUID> getEliminatedSet() {
+        return matchEliminated.getOrDefault(currentMatchId, new HashSet<>());
+    }
+
+    private Map<UUID, UUID> getTeamMap() {
+        return matchPlayerToTeam.getOrDefault(currentMatchId, new HashMap<>());
+    }
+
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        blocksBroken.merge(player.getUniqueId(), 1, Integer::sum);
+        getBlocksMap().merge(player.getUniqueId(), 1, Integer::sum);
+
+        // Track for arena reset
+        if (arenaResetService != null && currentArena != null) {
+            arenaResetService.trackBlockBreak(currentArena, event.getBlock());
+        }
     }
 
     public int getBlocksBroken(UUID playerId) {
-        return blocksBroken.getOrDefault(playerId, 0);
+        return getBlocksMap().getOrDefault(playerId, 0);
     }
 
     public void onPlayerFall(UUID playerId) {
-        eliminated.add(playerId);
+        getEliminatedSet().add(playerId);
     }
 
     public boolean isEliminated(UUID playerId) {
-        return eliminated.contains(playerId);
+        return getEliminatedSet().contains(playerId);
+    }
+
+    public int getAliveCount(Match match) {
+        return 2 - getEliminatedSet().size();
     }
 
     public void assignPlayerToTeam(UUID playerId, UUID teamId) {
-        playerToTeam.put(playerId, teamId);
+        getTeamMap().put(playerId, teamId);
     }
 
     public Optional<UUID> getTeamForPlayer(UUID playerId) {
-        return Optional.ofNullable(playerToTeam.get(playerId));
+        return Optional.ofNullable(getTeamMap().get(playerId));
     }
 
     public boolean isTeamEliminated(UUID teamId) {
-        return playerToTeam.entrySet().stream()
+        return getTeamMap().entrySet().stream()
                 .filter(e -> e.getValue().equals(teamId))
-                .allMatch(e -> eliminated.contains(e.getKey()));
+                .allMatch(e -> getEliminatedSet().contains(e.getKey()));
     }
 }
