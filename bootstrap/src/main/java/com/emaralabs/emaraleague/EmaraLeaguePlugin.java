@@ -11,6 +11,7 @@ import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.scheduler.PaperScheduler;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
+import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import com.emaralabs.emaraleague.infrastructure.database.DatabaseManager;
 import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
@@ -66,6 +67,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
             gameModeRegistry = new GameModeRegistry();
             winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
             matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
+
+            MatchScoreboard scoreboard = new MatchScoreboard(matchEngine);
+            matchEngine.setScoreboard(scoreboard);
 
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());

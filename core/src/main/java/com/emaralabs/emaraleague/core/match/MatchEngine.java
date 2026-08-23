@@ -9,6 +9,7 @@ import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.*;
+import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -30,6 +31,7 @@ public final class MatchEngine {
     private TeleportService teleportService;
     private PlayerSessionManager playerSessions;
     private BracketGenerator bracketGenerator;
+    private MatchScoreboard scoreboard;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -54,6 +56,10 @@ public final class MatchEngine {
 
     public void setBracketGenerator(BracketGenerator bracketGenerator) {
         this.bracketGenerator = bracketGenerator;
+    }
+
+    public void setScoreboard(MatchScoreboard scoreboard) {
+        this.scoreboard = scoreboard;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -87,11 +93,34 @@ public final class MatchEngine {
         // Teleport players to arena
         teleportPlayersToArena(matchId);
 
+        // Show scoreboard to players
+        showScoreboardToPlayers(matchId, updated);
+
         if (countdown != null) {
             countdown.startCountdown(updated, 10, () -> beginPlay(matchId));
         }
 
         return updated;
+    }
+
+    private void showScoreboardToPlayers(UUID matchId, Match match) {
+        if (scoreboard == null || playerSessions == null) {
+            return;
+        }
+        UUID tournamentId = matchToTournament.get(matchId);
+        if (tournamentId == null) {
+            return;
+        }
+        tournaments.getTournament(tournamentId).ifPresent(t -> {
+            for (Team team : t.teams()) {
+                for (UUID playerId : team.playerIds()) {
+                    Player player = Bukkit.getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        scoreboard.showToPlayer(player, match);
+                    }
+                }
+            }
+        });
     }
 
     private void assignArenaToMatch(UUID matchId) {
@@ -184,6 +213,11 @@ public final class MatchEngine {
 
         // Teleport players back to lobby
         teleportPlayersToLobby(matchId);
+
+        // Hide scoreboard
+        if (scoreboard != null) {
+            scoreboard.hideFromAll();
+        }
 
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);
