@@ -86,20 +86,32 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        switch (sub) {
-            case "create" -> handleCreate(sender, args);
-            case "delete" -> handleDelete(sender, args);
-            case "join" -> handleJoin(sender, args);
-            case "leave" -> handleLeave(sender);
-            case "team" -> handleTeam(sender, args);
-            case "start" -> handleStart(sender, args);
-            case "info" -> handleInfo(sender, args);
-            case "arena" -> handleArena(sender, args);
-            case "history" -> handleHistory(sender);
-            case "stats" -> handleStats(sender, args);
-            case "help" -> sendHelp(sender);
-            case "reload" -> handleReload(sender);
-            default -> sender.sendMessage(messages.get("unknown-command"));
+        try {
+            switch (sub) {
+                case "create" -> handleCreate(sender, args);
+                case "delete" -> handleDelete(sender, args);
+                case "join" -> handleJoin(sender, args);
+                case "leave" -> handleLeave(sender);
+                case "team" -> handleTeam(sender, args);
+                case "start" -> handleStart(sender, args);
+                case "info" -> handleInfo(sender, args);
+                case "arena" -> handleArena(sender, args);
+                case "history" -> handleHistory(sender);
+                case "stats" -> handleStats(sender, args);
+                case "help" -> sendHelp(sender);
+                case "reload" -> handleReload(sender);
+                default -> sender.sendMessage(messages.get("unknown-command"));
+            }
+        } catch (IllegalStateException e) {
+            // Business-rule violations → player-facing message, no console stack trace
+            sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage(MessageFormatter.error(e.getMessage()));
+        } catch (Exception e) {
+            // Unexpected bugs → generic player message + full console log
+            sender.sendMessage(MessageFormatter.error("An unexpected error occurred. Please report this to an admin."));
+            plugin.getLogger().severe("Unexpected error executing /emaraleague " + sub + ": " + e.getMessage());
+            e.printStackTrace();
         }
 
         return true;
@@ -202,6 +214,11 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         // Find player's tournament and remove from team + unregister
         for (Tournament tournament : tournamentManager.getTournaments()) {
             if (tournament.isPlayerRegistered(player.getUniqueId())) {
+                // Guard: cannot leave once tournament has started
+                if (tournament.state() != TournamentState.REGISTRATION) {
+                    sender.sendMessage(MessageFormatter.error("You cannot leave — the tournament has already started."));
+                    return;
+                }
                 // Remove from team
                 Optional<Team> team = tournamentManager.getTeamForPlayer(tournament.name(), player.getUniqueId());
                 if (team.isPresent()) {

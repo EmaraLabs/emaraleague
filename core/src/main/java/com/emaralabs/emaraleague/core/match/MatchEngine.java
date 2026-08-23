@@ -254,6 +254,10 @@ public final class MatchEngine {
         if (match == null) {
             throw new IllegalArgumentException("Match not found: " + matchId);
         }
+        // Idempotent — if already INGAME (e.g. countdown fired twice), return silently
+        if (match.state() == MatchState.INGAME) {
+            return match;
+        }
         validateMatchTransition(match.state(), MatchState.INGAME);
         Match updated = match.withState(MatchState.INGAME);
         matches.put(matchId, updated);
