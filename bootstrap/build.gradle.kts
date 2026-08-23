@@ -37,7 +37,6 @@ dependencies {
     implementation(project(":infrastructure:logging"))
     implementation(project(":infrastructure:security"))
     implementation("org.slf4j:slf4j-api:${providers.gradleProperty("slf4jVersion").get()}")
-    implementation("org.slf4j:slf4j-simple:${providers.gradleProperty("slf4jVersion").get()}")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     testImplementation("org.mockito:mockito-core:5.11.0")
@@ -60,7 +59,6 @@ tasks.shadowJar {
     relocate("io.leangen.geantyref", "com.emaralabs.emaraleague.libs.geantyref")
     relocate("org.slf4j", "com.emaralabs.emaraleague.libs.slf4j")
     relocate("org.apache.commons.logging", "com.emaralabs.emaraleague.libs.commonslogging")
-    relocate("org.slf4j.simple", "com.emaralabs.emaraleague.libs.slf4j.simple")
 
     mergeServiceFiles()
 }

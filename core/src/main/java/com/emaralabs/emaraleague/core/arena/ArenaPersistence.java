@@ -83,8 +83,10 @@ public class ArenaPersistence {
             String stateName = config.getString(path + ".state", "LOBBY");
             try {
                 ArenaState state = ArenaState.valueOf(stateName);
-                // Directly set state without validation for persistence
-                arena.setState(state);
+                // Only set state if different from current (avoid LOBBY -> LOBBY)
+                if (arena.getState() != state) {
+                    arena.setState(state);
+                }
             } catch (IllegalArgumentException e) {
                 // Invalid state, keep default
             }
