@@ -340,10 +340,28 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        // Bug 3 fix: Validate tournament can actually start
-        if (!tournamentManager.canStart(name)) {
-            sender.sendMessage(MessageFormatter.error("Tournament needs at least 2 teams with 1 player each to start."));
-            return;
+        // Check for solo mode (testing)
+        boolean soloMode = args.length >= 3 && args[2].equalsIgnoreCase("solo");
+        if (soloMode) {
+            // Create dummy team with fake player for testing
+            Tournament tournament = tournamentManager.getTournament(name).orElse(null);
+            if (tournament == null) {
+                sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+                return;
+            }
+            if (tournament.teams().size() < 2) {
+                // Create second team with dummy player
+                Team dummyTeam = new Team("Dummy", 2);
+                tournamentManager.addTeam(name, dummyTeam);
+                tournamentManager.assignPlayerToTeam(name, dummyTeam.id(), UUID.randomUUID());
+            }
+            sender.sendMessage(MessageFormatter.info("Starting tournament in SOLO mode (testing only)"));
+        } else {
+            // Normal validation
+            if (!tournamentManager.canStart(name)) {
+                sender.sendMessage(MessageFormatter.error("Tournament needs at least 2 teams with 1 player each to start."));
+                return;
+            }
         }
 
         try {
