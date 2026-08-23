@@ -7,6 +7,7 @@ import com.emaralabs.emaraleague.core.arena.ArenaState;
 import com.emaralabs.emaraleague.core.bracket.Bracket;
 import com.emaralabs.emaraleague.core.bracket.BracketGenerator;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
+import com.emaralabs.emaraleague.core.player.InventoryManager;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.player.PlayerStats;
 import com.emaralabs.emaraleague.core.player.SpectatorManager;
@@ -41,6 +42,8 @@ public final class MatchEngine {
     private ArenaResetService arenaResetService;
     private SpectatorManager spectatorManager;
     private PlayerStats playerStats;
+    private MatchTimeout matchTimeout;
+    private InventoryManager inventoryManager;
     private final Map<UUID, MatchRecord> matchHistory = new ConcurrentHashMap<>();
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
@@ -88,6 +91,14 @@ public final class MatchEngine {
         this.playerStats = playerStats;
     }
 
+    public void setMatchTimeout(MatchTimeout matchTimeout) {
+        this.matchTimeout = matchTimeout;
+    }
+
+    public void setInventoryManager(InventoryManager inventoryManager) {
+        this.inventoryManager = inventoryManager;
+    }
+
     public SpectatorManager getSpectatorManager() {
         return spectatorManager;
     }
@@ -133,6 +144,27 @@ public final class MatchEngine {
 
         // Teleport players to arena
         teleportPlayersToArena(matchId);
+
+        // Save and clear player inventories
+        if (inventoryManager != null) {
+            for (UUID playerId : match.teamA().playerIds()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    inventoryManager.saveAndClearInventory(player);
+                }
+            }
+            for (UUID playerId : match.teamB().playerIds()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    inventoryManager.saveAndClearInventory(player);
+                }
+            }
+        }
+
+        // Start timeout timer
+        if (matchTimeout != null) {
+            matchTimeout.startTimer(matchId);
+        }
 
         // Show scoreboard to players
         showScoreboardToPlayers(matchId, updated);
@@ -339,6 +371,27 @@ public final class MatchEngine {
                     arenas.transitionArena(arena.getName(), ArenaState.LOBBY);
                 }
             });
+        }
+
+        // Restore player inventories
+        if (inventoryManager != null) {
+            for (UUID playerId : match.teamA().playerIds()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    inventoryManager.restoreInventory(player);
+                }
+            }
+            for (UUID playerId : match.teamB().playerIds()) {
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    inventoryManager.restoreInventory(player);
+                }
+            }
+        }
+
+        // Cancel timeout timer
+        if (matchTimeout != null) {
+            matchTimeout.cancelTimer(matchId);
         }
 
         // Teleport players back to lobby

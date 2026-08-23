@@ -11,7 +11,9 @@ import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.match.MatchCountdown;
 import com.emaralabs.emaraleague.core.match.MatchEngine;
 import com.emaralabs.emaraleague.core.match.MatchHistoryPersistence;
+import com.emaralabs.emaraleague.core.match.MatchTimeout;
 import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
+import com.emaralabs.emaraleague.core.player.InventoryManager;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.player.PlayerStatsPersistence;
 import com.emaralabs.emaraleague.core.scheduler.PaperScheduler;
@@ -100,6 +102,12 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
             ArenaResetService arenaResetService = new ArenaResetService();
             matchEngine.setArenaResetService(arenaResetService);
+
+            MatchTimeout matchTimeout = new MatchTimeout(new PaperScheduler(this), matchEngine);
+            matchEngine.setMatchTimeout(matchTimeout);
+
+            InventoryManager inventoryManager = new InventoryManager();
+            matchEngine.setInventoryManager(inventoryManager);
 
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());
