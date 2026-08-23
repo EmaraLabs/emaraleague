@@ -40,7 +40,62 @@ public class SingleEliminationBracket implements BracketGenerator {
 
     @Override
     public Bracket advance(Bracket bracket, Match completedMatch) {
-        return bracket;
+        List<Match> matches = new ArrayList<>(bracket.getMatches());
+        Team winner = completedMatch.winner();
+        if (winner == null) {
+            return bracket;
+        }
+
+        // Find the completed match index
+        int completedIndex = -1;
+        for (int i = 0; i < matches.size(); i++) {
+            if (matches.get(i).id().equals(completedMatch.id())) {
+                completedIndex = i;
+                break;
+            }
+        }
+
+        if (completedIndex < 0) {
+            return bracket;
+        }
+
+        // Update the completed match with winner
+        matches.set(completedIndex, completedMatch);
+
+        // Calculate next match index for winner
+        int nextMatchIndex = getNextMatchIndex(completedIndex, matches.size());
+        if (nextMatchIndex >= 0 && nextMatchIndex < matches.size()) {
+            Match nextMatch = matches.get(nextMatchIndex);
+            Team teamA = nextMatch.teamA();
+            Team teamB = nextMatch.teamB();
+
+            // Place winner in empty slot
+            if (teamA == null && teamB == null) {
+                matches.set(nextMatchIndex, new Match(winner, null));
+            } else if (teamA == null) {
+                matches.set(nextMatchIndex, new Match(winner, teamB));
+            } else if (teamB == null) {
+                matches.set(nextMatchIndex, new Match(teamA, winner));
+            }
+        }
+
+        return new Bracket(matches);
+    }
+
+    private int getNextMatchIndex(int completedIndex, int totalMatches) {
+        if (totalMatches <= 1) {
+            return -1;
+        }
+        if (totalMatches == 3) {
+            if (completedIndex == 0 || completedIndex == 1) {
+                return 2;
+            }
+            return -1;
+        }
+        int round = (int) (Math.log(completedIndex + 1) / Math.log(2));
+        int positionInRound = completedIndex - ((1 << round) - 1);
+        int nextRoundStart = ((1 << (round + 1)) - 1);
+        return nextRoundStart + positionInRound / 2;
     }
 
     private int getFirstRoundMatchCount(int teamCount) {

@@ -2,6 +2,7 @@ package com.emaralabs.emaraleague;
 
 import com.emaralabs.emaraleague.command.EmaraLeagueCommand;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
+import com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket;
 import com.emaralabs.emaraleague.core.game.GameModeRegistry;
 import com.emaralabs.emaraleague.core.match.MatchCountdown;
 import com.emaralabs.emaraleague.core.match.MatchEngine;
@@ -59,6 +60,8 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
             playerSessionManager = new PlayerSessionManager();
             teleportService = new TeleportService();
             matchEngine = new MatchEngine(tournamentManager, arenaManager);
+            matchEngine.setTeleportService(teleportService);
+            matchEngine.setPlayerSessionManager(playerSessionManager);
             gameModeRegistry = new GameModeRegistry();
             winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
             matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
@@ -67,6 +70,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
             gameModeRegistry.register(new SpleefGameMode());
             matchEngine.setGameModeRegistry(gameModeRegistry);
             matchEngine.setCountdown(matchCountdown);
+            matchEngine.setBracketGenerator(new SingleEliminationBracket());
 
             EmaraLeagueCommand command = new EmaraLeagueCommand(this, tournamentManager, arenaManager);
 

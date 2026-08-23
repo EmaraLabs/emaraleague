@@ -29,6 +29,7 @@ public final class MatchEngine {
     private MatchCountdown countdown;
     private TeleportService teleportService;
     private PlayerSessionManager playerSessions;
+    private BracketGenerator bracketGenerator;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
@@ -49,6 +50,10 @@ public final class MatchEngine {
 
     public void setPlayerSessionManager(PlayerSessionManager playerSessions) {
         this.playerSessions = playerSessions;
+    }
+
+    public void setBracketGenerator(BracketGenerator bracketGenerator) {
+        this.bracketGenerator = bracketGenerator;
     }
 
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
@@ -186,7 +191,46 @@ public final class MatchEngine {
                     gameModeRegistry.getMode(t.mode()).ifPresent(mode -> mode.onMatchEnd(updated, winner)));
         }
 
+        // Auto-advance bracket and start next match
+        if (bracketGenerator != null) {
+            UUID tournamentId = matchToTournament.get(matchId);
+            tournaments.getTournament(tournamentId).ifPresent(t -> {
+                Bracket currentBracket = new Bracket(getMatches(t.name()));
+                Bracket advanced = bracketGenerator.advance(currentBracket, updated);
+
+                // Store newly populated matches
+                for (Match m : advanced.getMatches()) {
+                    if (!matches.containsKey(m.id()) && m.teamA() != null && m.teamB() != null) {
+                        matches.put(m.id(), m);
+                        matchToTournament.put(m.id(), tournamentId);
+                    }
+                }
+
+                // Auto-start next match if available
+                getNextMatch(t.name()).ifPresent(next -> {
+                    if (next.state() == MatchState.PENDING) {
+                        startMatch(next.id());
+                    }
+                });
+            });
+        }
+
         return updated;
+    }
+
+    public boolean isTournamentComplete(String tournamentName) {
+        return getMatches(tournamentName).stream()
+                .allMatch(m -> m.state() == MatchState.ENDED);
+    }
+
+    public Optional<Team> getChampion(String tournamentName) {
+        if (!isTournamentComplete(tournamentName)) {
+            return Optional.empty();
+        }
+        return getMatches(tournamentName).stream()
+                .filter(m -> m.state() == MatchState.ENDED && m.winner() != null)
+                .map(Match::winner)
+                .findFirst();
     }
 
     private void teleportPlayersToLobby(UUID matchId) {
