@@ -16,6 +16,7 @@ import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
 import com.emaralabs.emaraleague.modules.duels.DuelsGameMode;
 import com.emaralabs.emaraleague.modules.spleef.SpleefGameMode;
+import com.emaralabs.emaraleague.modules.sumo.SumoGameMode;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.command.CommandSender;
@@ -68,6 +69,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());
+            gameModeRegistry.register(new SumoGameMode());
             matchEngine.setGameModeRegistry(gameModeRegistry);
             matchEngine.setCountdown(matchCountdown);
             matchEngine.setBracketGenerator(new SingleEliminationBracket());
