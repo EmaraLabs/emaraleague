@@ -1,5 +1,7 @@
 package com.emaralabs.emaraleague;
 
+import com.emaralabs.emaraleague.api.EmaraAddon;
+import com.emaralabs.emaraleague.api.EmaraLeagueAPI;
 import com.emaralabs.emaraleague.command.EmaraLeagueCommand;
 import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.arena.ArenaResetService;
@@ -26,9 +28,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
-public final class EmaraLeaguePlugin extends JavaPlugin {
+public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAPI {
 
+    private static final int API_VERSION = 1;
     private static EmaraLeaguePlugin instance;
     private TournamentManager tournamentManager;
     private ArenaManager arenaManager;
@@ -40,6 +46,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
     private TournamentRepository tournamentRepository;
     private WinConditionEvaluator winConditionEvaluator;
     private MatchCountdown matchCountdown;
+    private final Map<String, EmaraAddon> addons = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -115,6 +122,11 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Disable all addons first
+        for (EmaraAddon addon : List.copyOf(addons.values())) {
+            unregisterAddon(addon.getId());
+        }
+
         if (tournamentRepository != null) {
             tournamentRepository.shutdown();
         }
@@ -151,5 +163,92 @@ public final class EmaraLeaguePlugin extends JavaPlugin {
 
     public GameModeRegistry getGameModeRegistry() {
         return gameModeRegistry;
+    }
+
+    // ── EmaraLeagueAPI Implementation ───────────────────────────────
+
+    public EmaraLeagueAPI getAPI() {
+        return this;
+    }
+
+    @Override
+    public int getApiVersion() {
+        return API_VERSION;
+    }
+
+    @Override
+    public void registerAddon(EmaraAddon addon) {
+        if (addon.getRequiredApiVersion() > API_VERSION) {
+            throw new IllegalArgumentException(
+                addon.getName() + " requires API v" + addon.getRequiredApiVersion() +
+                " but current is v" + API_VERSION
+            );
+        }
+        addons.put(addon.getId(), addon);
+        addon.onEnable(this);
+        getLogger().info("Addon enabled: " + addon.getName() + " v" + addon.getVersion());
+    }
+
+    @Override
+    public void unregisterAddon(String addonId) {
+        EmaraAddon addon = addons.remove(addonId);
+        if (addon != null) {
+            addon.onDisable();
+            getLogger().info("Addon disabled: " + addon.getName());
+        }
+    }
+
+    @Override
+    public List<EmaraAddon> getAddons() {
+        return List.copyOf(addons.values());
+    }
+
+    @Override
+    public boolean isAddonEnabled(String addonId) {
+        return addons.containsKey(addonId);
+    }
+
+    @Override
+    public void registerGameMode(Object gameMode) {
+        if (gameMode instanceof com.emaralabs.emaraleague.core.game.GameMode mode) {
+            gameModeRegistry.register(mode);
+        }
+    }
+
+    @Override
+    public void unregisterGameMode(String gameModeId) {
+        gameModeRegistry.unregister(gameModeId);
+    }
+
+    @Override
+    public void broadcastToTournament(String tournamentName, net.kyori.adventure.text.Component message) {
+        tournamentManager.getTournament(tournamentName).ifPresent(t -> {
+            for (var team : t.teams()) {
+                for (var playerId : team.playerIds()) {
+                    var player = getServer().getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        player.sendMessage(message);
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void broadcastToMatch(UUID matchId, net.kyori.adventure.text.Component message) {
+        matchEngine.getMatch(matchId).ifPresent(match -> {
+            for (var playerId : match.teamA().playerIds()) {
+                var player = getServer().getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage(message);
+                }
+            }
+            for (var playerId : match.teamB().playerIds()) {
+                var player = getServer().getPlayer(playerId);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage(message);
+                }
+            }
+        });
     }
 }

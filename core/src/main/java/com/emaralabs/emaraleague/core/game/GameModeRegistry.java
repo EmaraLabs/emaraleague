@@ -13,6 +13,10 @@ public final class GameModeRegistry {
         modes.put(mode.getId().toLowerCase(), mode);
     }
 
+    public void unregister(String id) {
+        modes.remove(id.toLowerCase());
+    }
+
     public Optional<GameMode> getMode(String id) {
         return Optional.ofNullable(modes.get(id.toLowerCase()));
     }
