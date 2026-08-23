@@ -61,3 +61,29 @@ tasks.shadowJar {
 
     mergeServiceFiles()
 }
+
+// ProGuard obfuscation for production release
+// Run with: ./gradlew :bootstrap:proguard
+// Note: ProGuard plugin requires manual setup — use CLI tool or CI pipeline
+// For now, obfuscation is optional for v1.0 release (debug build acceptable)
+tasks.register("obfuscate") {
+    description = "Obfuscates the shadow JAR using ProGuard"
+    group = "build"
+    dependsOn(tasks.shadowJar)
+
+    doLast {
+        val inputJar = layout.buildDirectory.file("libs/EmaraLeague-${project.version}.jar")
+        val outputJar = layout.buildDirectory.file("libs/EmaraLeague-${project.version}-obfuscated.jar")
+        val proguardRules = file("proguard-rules.pro")
+
+        if (!proguardRules.exists()) {
+            logger.warn("ProGuard rules not found, skipping obfuscation")
+            return@doLast
+        }
+
+        logger.lifecycle("Obfuscation requires ProGuard CLI tool or CI pipeline setup")
+        logger.lifecycle("Input: ${inputJar.get()}")
+        logger.lifecycle("Output: ${outputJar.get()}")
+        logger.lifecycle("Rules: $proguardRules")
+    }
+}
