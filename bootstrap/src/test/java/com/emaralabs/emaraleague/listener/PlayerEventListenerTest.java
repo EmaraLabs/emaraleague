@@ -2,6 +2,7 @@ package com.emaralabs.emaraleague.listener;
 
 import com.emaralabs.emaraleague.core.match.MatchEngine;
 import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
+import com.emaralabs.emaraleague.core.player.DisconnectGraceManager;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.ui.MessageRegistry;
 import org.bukkit.entity.Player;
@@ -21,6 +22,7 @@ class PlayerEventListenerTest {
     private PlayerSessionManager sessions;
     private MessageRegistry messages;
     private WinConditionEvaluator winEvaluator;
+    private DisconnectGraceManager disconnectGraceManager;
     private PlayerEventListener listener;
 
     @BeforeEach
@@ -29,7 +31,8 @@ class PlayerEventListenerTest {
         sessions = new PlayerSessionManager();
         messages = mock(MessageRegistry.class);
         winEvaluator = mock(WinConditionEvaluator.class);
-        listener = new PlayerEventListener(matchEngine, sessions, messages, winEvaluator);
+        disconnectGraceManager = new DisconnectGraceManager();
+        listener = new PlayerEventListener(matchEngine, sessions, messages, winEvaluator, disconnectGraceManager);
     }
 
     @Test
@@ -76,7 +79,7 @@ class PlayerEventListenerTest {
     }
 
     @Test
-    void onPlayerQuit_inMatch_clearsMatch() {
+    void onPlayerQuit_inMatch_recordsDisconnect() {
         UUID playerId = UUID.randomUUID();
         UUID matchId = UUID.randomUUID();
         sessions.createSession(playerId, "Steve");
@@ -90,7 +93,9 @@ class PlayerEventListenerTest {
 
         listener.onPlayerQuit(event);
 
-        assertFalse(sessions.isInMatch(playerId));
+        // Grace period records disconnect, doesn't clear match yet
+        assertTrue(disconnectGraceManager.isDisconnected(playerId));
+        assertTrue(sessions.isInMatch(playerId)); // Still in match during grace period
     }
 
     @Test

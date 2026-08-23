@@ -3,6 +3,7 @@ package com.emaralabs.emaraleague.listener;
 import com.emaralabs.emaraleague.core.game.GameMode;
 import com.emaralabs.emaraleague.core.match.MatchEngine;
 import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
+import com.emaralabs.emaraleague.core.player.DisconnectGraceManager;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.tournament.Match;
 import com.emaralabs.emaraleague.core.tournament.Team;
@@ -24,13 +25,15 @@ public final class PlayerEventListener implements Listener {
     private final PlayerSessionManager sessions;
     private final MessageRegistry messages;
     private final WinConditionEvaluator winEvaluator;
+    private final DisconnectGraceManager disconnectGraceManager;
     private double fallThreshold = 0;
 
-    public PlayerEventListener(MatchEngine matchEngine, PlayerSessionManager sessions, MessageRegistry messages, WinConditionEvaluator winEvaluator) {
+    public PlayerEventListener(MatchEngine matchEngine, PlayerSessionManager sessions, MessageRegistry messages, WinConditionEvaluator winEvaluator, DisconnectGraceManager disconnectGraceManager) {
         this.matchEngine = matchEngine;
         this.sessions = sessions;
         this.messages = messages;
         this.winEvaluator = winEvaluator;
+        this.disconnectGraceManager = disconnectGraceManager;
     }
 
     public void setFallThreshold(double fallThreshold) {
@@ -47,7 +50,20 @@ public final class PlayerEventListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        handleElimination(event.getPlayer());
+        Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+
+        // Record disconnect for grace period
+        if (sessions.isInMatch(playerId)) {
+            Optional<UUID> matchId = sessions.getMatchId(playerId);
+            if (matchId.isPresent()) {
+                disconnectGraceManager.recordDisconnect(playerId, matchId.get());
+                // Don't eliminate immediately — allow rejoin within grace period
+                return;
+            }
+        }
+
+        handleElimination(player);
     }
 
     @EventHandler

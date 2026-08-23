@@ -13,6 +13,7 @@ import com.emaralabs.emaraleague.core.match.MatchEngine;
 import com.emaralabs.emaraleague.core.match.MatchHistoryPersistence;
 import com.emaralabs.emaraleague.core.match.MatchTimeout;
 import com.emaralabs.emaraleague.core.match.WinConditionEvaluator;
+import com.emaralabs.emaraleague.core.player.DisconnectGraceManager;
 import com.emaralabs.emaraleague.core.player.InventoryManager;
 import com.emaralabs.emaraleague.core.player.PlayerSessionManager;
 import com.emaralabs.emaraleague.core.player.PlayerStatsPersistence;
@@ -54,6 +55,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
     private ArenaPersistence arenaPersistence;
     private MatchHistoryPersistence matchHistoryPersistence;
     private PlayerStatsPersistence playerStatsPersistence;
+    private DisconnectGraceManager disconnectGraceManager;
     private final Map<String, EmaraAddon> addons = new ConcurrentHashMap<>();
 
     @Override
@@ -109,6 +111,8 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             InventoryManager inventoryManager = new InventoryManager();
             matchEngine.setInventoryManager(inventoryManager);
 
+            disconnectGraceManager = new DisconnectGraceManager();
+
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());
             gameModeRegistry.register(new SumoGameMode());
@@ -132,7 +136,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
             registerCommand("emaraleague", "EmaraLeague tournament management", List.of("el", "league"), basicCommand);
 
-            PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator);
+            PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator, disconnectGraceManager);
             getServer().getPluginManager().registerEvents(listener, this);
 
             getLogger().info("EmaraLeague enabled");

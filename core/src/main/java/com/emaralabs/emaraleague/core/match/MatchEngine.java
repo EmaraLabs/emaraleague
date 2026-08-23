@@ -126,15 +126,19 @@ public final class MatchEngine {
         if (match == null) {
             throw new IllegalArgumentException("Match not found: " + matchId);
         }
-        validateMatchTransition(match.state(), MatchState.STARTING);
-        Match updated = match.withState(MatchState.STARTING);
-        matches.put(matchId, updated);
+        Match updated;
+        // Synchronized validation to prevent race condition
+        synchronized (matches) {
+            validateMatchTransition(match.state(), MatchState.STARTING);
+            updated = match.withState(MatchState.STARTING);
+            matches.put(matchId, updated);
 
-        // Auto-assign arena
-        assignArenaToMatch(matchId);
+            // Auto-assign arena atomically
+            assignArenaToMatch(matchId);
 
-        // Assign players to match session
-        assignPlayersToMatch(matchId);
+            // Assign players to match session
+            assignPlayersToMatch(matchId);
+        }
 
         if (gameModeRegistry != null) {
             UUID tournamentId = matchToTournament.get(matchId);
@@ -392,6 +396,11 @@ public final class MatchEngine {
         // Cancel timeout timer
         if (matchTimeout != null) {
             matchTimeout.cancelTimer(matchId);
+        }
+
+        // Cancel countdown if running
+        if (countdown != null) {
+            countdown.cancel();
         }
 
         // Teleport players back to lobby
