@@ -57,6 +57,22 @@ public class ArenaPersistence {
                 config.set(path + ".lobby.yaw", arena.getLobbySpawn().getYaw());
                 config.set(path + ".lobby.pitch", arena.getLobbySpawn().getPitch());
             }
+            if (arena.getSpawnA() != null) {
+                config.set(path + ".spawnA.world", arena.getSpawnA().getWorld().getName());
+                config.set(path + ".spawnA.x", arena.getSpawnA().getX());
+                config.set(path + ".spawnA.y", arena.getSpawnA().getY());
+                config.set(path + ".spawnA.z", arena.getSpawnA().getZ());
+                config.set(path + ".spawnA.yaw", arena.getSpawnA().getYaw());
+                config.set(path + ".spawnA.pitch", arena.getSpawnA().getPitch());
+            }
+            if (arena.getSpawnB() != null) {
+                config.set(path + ".spawnB.world", arena.getSpawnB().getWorld().getName());
+                config.set(path + ".spawnB.x", arena.getSpawnB().getX());
+                config.set(path + ".spawnB.y", arena.getSpawnB().getY());
+                config.set(path + ".spawnB.z", arena.getSpawnB().getZ());
+                config.set(path + ".spawnB.yaw", arena.getSpawnB().getYaw());
+                config.set(path + ".spawnB.pitch", arena.getSpawnB().getPitch());
+            }
         }
         try {
             config.save(file);
@@ -80,15 +96,18 @@ public class ArenaPersistence {
                 continue;
             }
             Arena arena = arenaManager.createArena(name);
+            // Always reset to LOBBY on load — previous state may be invalid after restart
+            // (e.g. arena was INGAME when server crashed, LOBBY->INGAME is invalid transition)
             String stateName = config.getString(path + ".state", "LOBBY");
             try {
                 ArenaState state = ArenaState.valueOf(stateName);
-                // Only set state if different from current (avoid LOBBY -> LOBBY)
-                if (arena.getState() != state) {
+                // Only set if valid transition from LOBBY
+                if (state == ArenaState.LOBBY && arena.getState() != ArenaState.LOBBY) {
                     arena.setState(state);
                 }
+                // Non-LOBBY states are ignored — arena starts fresh at LOBBY
             } catch (IllegalArgumentException e) {
-                // Invalid state, keep default
+                // Invalid state name, keep default LOBBY
             }
             if (config.contains(path + ".center")) {
                 String worldName = config.getString(path + ".center.world");
@@ -112,6 +131,30 @@ public class ArenaPersistence {
                     float yaw = (float) config.getDouble(path + ".lobby.yaw");
                     float pitch = (float) config.getDouble(path + ".lobby.pitch");
                     arena.setLobbySpawn(new Location(world, x, y, z, yaw, pitch));
+                }
+            }
+            if (config.contains(path + ".spawnA")) {
+                String worldName = config.getString(path + ".spawnA.world");
+                World world = plugin.getServer().getWorld(worldName);
+                if (world != null) {
+                    double x = config.getDouble(path + ".spawnA.x");
+                    double y = config.getDouble(path + ".spawnA.y");
+                    double z = config.getDouble(path + ".spawnA.z");
+                    float yaw = (float) config.getDouble(path + ".spawnA.yaw");
+                    float pitch = (float) config.getDouble(path + ".spawnA.pitch");
+                    arena.setSpawnA(new Location(world, x, y, z, yaw, pitch));
+                }
+            }
+            if (config.contains(path + ".spawnB")) {
+                String worldName = config.getString(path + ".spawnB.world");
+                World world = plugin.getServer().getWorld(worldName);
+                if (world != null) {
+                    double x = config.getDouble(path + ".spawnB.x");
+                    double y = config.getDouble(path + ".spawnB.y");
+                    double z = config.getDouble(path + ".spawnB.z");
+                    float yaw = (float) config.getDouble(path + ".spawnB.yaw");
+                    float pitch = (float) config.getDouble(path + ".spawnB.pitch");
+                    arena.setSpawnB(new Location(world, x, y, z, yaw, pitch));
                 }
             }
         }
