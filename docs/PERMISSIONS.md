@@ -1,19 +1,20 @@
 # EmaraLeague — Permission Reference
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 > **Last Updated:** August 2026
 
 ---
 
 ## 📋 Permission Nodes
 
-| Permission | Default | Description |
-|------------|---------|-------------|
-| `emaraleague.use` | true | Basic plugin access |
-| `emaraleague.play` | true | Join and play tournaments |
-| `emaraleague.create` | op | Create tournaments |
-| `emaraleague.admin` | op | Admin commands |
-| `emaraleague.reload` | op | Reload configuration |
+|| Permission | Default | Description |
+||------------|---------|-------------|
+|| `emaraleague.use` | true | Basic plugin access |
+|| `emaraleague.play` | true | Join and play tournaments |
+|| `emaraleague.create` | op | Create tournaments |
+|| `emaraleague.admin` | op | Admin commands |
+|| `emaraleague.reload` | op | Reload configuration |
+|| `emaraleague.spectate` | true | Spectate matches |
 
 ---
 
@@ -28,6 +29,9 @@
 - `/el info` — View tournament info
 - `/el team list` — List teams
 - `/el arena list` — List arenas
+- `/el spectate` — Spectate matches
+- `/el history` — View match history
+- `/el stats` — View player statistics
 
 **Use case:** Basic read-only access for all players.
 
@@ -42,6 +46,7 @@
 - `/el leave` — Leave tournaments
 - `/el team join` — Join specific team
 - `/el team leave` — Leave team
+- `/el rejoin` — Rejoin active match
 
 **Use case:** Players who can participate in tournaments.
 
@@ -113,6 +118,23 @@ lp group owner permission set emaraleague.reload true
 
 ---
 
+### `emaraleague.spectate`
+
+**Default:** `true` (all players)
+
+**Allows:**
+- `/el spectate` — Spectate active matches
+
+**Use case:** Players who can watch ongoing matches.
+
+**Recommended setup:**
+```yaml
+# LuckPerms example
+lp group default permission set emaraleague.spectate true
+```
+
+---
+
 ## 🛠️ Permission Plugin Examples
 
 ### LuckPerms
@@ -125,18 +147,22 @@ lp creategroup moderator
 lp creategroup admin
 
 # Set permissions
-lp group player permission set emaraleague.use true
-lp group player permission set emaraleague.play true
+lp group default permission set emaraleague.use true
+lp group default permission set emaraleague.play true
+lp group default permission set emaraleague.spectate true
 
 lp group vip permission set emaraleague.use true
 lp group vip permission set emaraleague.play true
+lp group vip permission set emaraleague.spectate true
 
 lp group moderator permission set emaraleague.use true
 lp group moderator permission set emaraleague.play true
+lp group moderator permission set emaraleague.spectate true
 lp group moderator permission set emaraleague.create true
 
 lp group admin permission set emaraleague.use true
 lp group admin permission set emaraleague.play true
+lp group admin permission set emaraleague.spectate true
 lp group admin permission set emaraleague.create true
 lp group admin permission set emaraleague.admin true
 lp group admin permission set emaraleague.reload true
@@ -223,11 +249,12 @@ emaraleague.reload: ranked.admin
 
 ## 🔒 Wildcard Permissions
 
-| Wildcard | Includes |
-|----------|----------|
-| `emaraleague.*` | All permissions |
-| `emaraleague.admin.*` | create, admin, reload |
-| `emaraleague.play.*` | play, team join/leave |
+|| Wildcard | Includes |
+||----------|----------|
+|| `emaraleague.*` | All permissions |
+|| `emaraleague.admin.*` | create, admin, reload |
+|| `emaraleague.play.*` | play, team join/leave, rejoin |
+|| `emaraleague.use.*` | use, spectate, history, stats |
 
 **Example:**
 ```yaml

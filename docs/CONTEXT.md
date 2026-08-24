@@ -9,13 +9,13 @@ Build **EmaraLeague**, a premium Minecraft tournament & events engine plugin for
 3. **Content creators** — running viewer/viewer-participation events on their servers.
 
 ## Current Phase
-**Phase 0: Planning & Discovery** — requirements, architecture, and implementation plan before writing code.
+**Phase 3: v1.0.1 Released** — Core plugin complete with ProGuard obfuscation, spectator mode, rejoin command, and max concurrent match limit. Ready for BuiltByBit/SpigotMC publication.
 
 ## Active Task
-Initialize project structure and draft HDS planning documents (CONTEXT.md, REQUIREMENTS.md, HERMES_DELIVERY.md).
+Publish v1.0.1 to marketplaces and begin v1.1 development (GUI editor, multi-language, additional game modes).
 
 ## Blockers
-- None yet.
+- None.
 
 ## Ownership & Development Model
 

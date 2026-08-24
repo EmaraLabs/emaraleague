@@ -35,10 +35,12 @@ Whether you're running a small community server or a large network, EmaraLeague 
 - **Live Scoreboards:** Real-time updates via Adventure BossBar & TabList
 
 ### Game Modes (Built-in)
-- **Duels** — Classic PvP with kit selection
-- **Spleef** — Block-breaking elimination
-- **Sumo** — Knockback arena battles
-- **TNT Run** — Floor decay survival
+- **Duels** — Classic 1v1 PvP with kill tracking
+- **Spleef** — Block-breaking elimination with fall detection
+- **Sumo** — Knockback arena battles with ring-out elimination
+- **TNTRun** — Blocks disappear under your feet (v1.1)
+- **Parkour** — Race to finish with checkpoints (v1.1)
+- **Capture The Flag** — Team-based flag capture (v1.1)
 
 ### Arena Management
 - **SlimeWorld Templates:** Instant arena load/reset via AdvancedSlimePaper
@@ -46,14 +48,16 @@ Whether you're running a small community server or a large network, EmaraLeague 
 - **Auto-Reset:** Worlds restore in under 5 seconds
 
 ### Player Experience
-- **Spectator Mode:** Auto-assign with streaming/casting tools
-- **Statistics:** Track wins, losses, ELO (addon), and leaderboards
+- **Spectator Mode:** `/el spectate` to watch active matches
+- **Rejoin Match:** `/el rejoin` to return after disconnect
+- **Statistics:** Track wins, losses, K/D, and match history
 - **Rewards:** Vault economy, PlayerPoints, custom items
 
 ### Admin Tools
-- **GUI Editor:** Create arenas, teams, and tournaments in-game
-- **Multi-language:** English, Spanish, Portuguese, Russian, Chinese
+- **GUI Editor:** Create arenas, teams, and tournaments in-game (v1.1)
+- **Multi-language:** English, Spanish, Portuguese, Russian, Chinese (v1.1)
 - **PlaceholderAPI:** `%emaraleague_wins%`, `%emaraleague_rank%`, etc.
+- **ProGuard:** Code obfuscation for production releases
 
 ---
 
@@ -165,13 +169,30 @@ See [LICENSE.md](LICENSE.md) for full terms.
 
 ## Changelog
 
-### v1.0.0 (In Development)
+### v1.0.1 (August 2026) — Current
+- ProGuard obfuscation for production JAR
+- `/el spectate` command for watching matches
+- `/el rejoin` command with 5-minute grace period
+- Maximum concurrent match limit (configurable)
+- Match history (`/el history`)
+- Player statistics (`/el stats`)
+- SLF4J logging fix (no more warnings)
+
+### v1.0.0 (August 2026)
 - Initial release
-- 4 bracket types
-- 4 built-in game modes
-- GUI editor
-- Multi-language support
+- Single elimination brackets
+- 3 built-in game modes (Duels, Spleef, Sumo)
+- Arena management with auto-reset
+- Team auto-assignment
+- BossBar countdown
+- SQLite/MySQL persistence
 - PlaceholderAPI expansion
+
+### v1.1 (September 2026) — Planned
+- GUI editor for arena/tournament setup
+- Multi-language (EN, ES, PT, RU, ZH)
+- TNTRun, Parkour, Capture The Flag
+- `/el spectate off` command
 
 **Roadmap:** [github.com/EmaraLabs/emaraleague/projects](https://github.com/EmaraLabs/emaraleague/projects)
 

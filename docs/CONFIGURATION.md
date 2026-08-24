@@ -1,6 +1,6 @@
 # EmaraLeague — Configuration Guide
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 > **Last Updated:** August 2026
 
 ---
@@ -43,7 +43,7 @@ arena:
 match:
   # Default game mode for new tournaments
   # Default: duels
-  # Options: duels, spleef, sumo
+  # Options: duels, spleef, sumo, tnt-run, parkour, capture-the-flag
   default-mode: duels
 
   # Maximum concurrent matches per server
@@ -137,7 +137,7 @@ arena:
 
 **Type:** `string`
 **Default:** `duels`
-**Options:** `duels`, `spleef`, `sumo`
+**Options:** `duels`, `spleef`, `sumo`, `tnt-run`, `parkour`, `capture-the-flag`
 
 Default game mode for new tournaments.
 

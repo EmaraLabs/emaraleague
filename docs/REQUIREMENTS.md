@@ -79,15 +79,24 @@
 
 ## Scope Boundaries
 
-### In Scope (v1.0)
-- Tournament engine core.
-- Single, double elimination, and round-robin brackets.
-- Built-in modes: Duels, Spleef, Sumo, TNT Run.
-- SQLite + MySQL persistence.
-- PlaceholderAPI, Vault, LuckPerms integration.
-- Folia-ready scheduler abstraction.
-- GUI editor for basic arena setup.
-- Multi-language message config.
+### In Scope (v1.0 — COMPLETE)
+- Tournament engine core. ✅
+- Single elimination brackets. ✅
+- Built-in modes: Duels, Spleef, Sumo. ✅
+- SQLite + MySQL persistence. ✅
+- PlaceholderAPI, Vault, LuckPerms integration. ✅
+- Folia-ready scheduler abstraction. ✅
+- ProGuard obfuscation. ✅
+- Spectator mode (`/el spectate`). ✅
+- Rejoin match (`/el rejoin`). ✅
+- Max concurrent match limit. ✅
+- Match history & player stats. ✅
+
+### In Progress (v1.1 — September 2026)
+- GUI editor for arena/tournament setup.
+- Multi-language messages (EN, ES, PT, RU, ZH).
+- TNTRun, Parkour, Capture The Flag game modes.
+- Spectator improvements (`/el spectate off`).
 
 ### Out of Scope (v1.0; future add-ons)
 - Web dashboard.

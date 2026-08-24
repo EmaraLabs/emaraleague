@@ -1,6 +1,6 @@
 # EmaraLeague — Setup Guide
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 > **Last Updated:** August 2026
 
 ---
@@ -20,11 +20,11 @@
 
 ### Step 1: Download
 1. Purchase EmaraLeague from [BuiltByBit](https://builtbybit.com) or [SpigotMC](https://spigotmc.org)
-2. Download `EmaraLeague-1.0.0.jar`
+2. Download `EmaraLeague-1.0.1-obfuscated.jar`
 
 ### Step 2: Install
 1. Stop your server
-2. Copy `EmaraLeague-1.0.0.jar` to `plugins/` folder
+2. Copy `EmaraLeague-1.0.1-obfuscated.jar` to `plugins/` folder
 3. Start server
 4. Check console for `EmaraLeague enabled`
 
@@ -150,7 +150,7 @@ tournament-started: "<green>Tournament '<name>' has started!"
 ### Check Match History
 
 ```
-# View past matches (coming in v1.1)
+# View past matches
 /el history
 ```
 

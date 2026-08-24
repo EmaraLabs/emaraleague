@@ -1,6 +1,6 @@
 # EmaraLeague — Frequently Asked Questions
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 > **Last Updated:** August 2026
 
 ---
@@ -66,11 +66,14 @@ Yes, you can use any world. Just stand in the world and use `/el arena setcenter
 
 ### Q: What game modes are included?
 
-| Mode | Description |
-|------|-------------|
-| **Duels** | 1v1 PvP with kill elimination |
-| **Spleef** | Block breaking with fall elimination |
-| **Sumo** | Knockback arena with ring-out elimination |
+|| Mode | Description |
+||------|-------------|
+|| **Duels** | 1v1 PvP with kill elimination |
+|| **Spleef** | Block breaking with fall elimination |
+|| **Sumo** | Knockback arena with ring-out elimination |
+|| **TNTRun** | Blocks disappear under your feet (coming in v1.1) |
+|| **Parkour** | Race to finish with checkpoints (coming in v1.1) |
+|| **Capture The Flag** | Team-based flag capture (coming in v1.1) |
 
 ### Q: Can I add custom game modes?
 
@@ -78,7 +81,7 @@ Yes, custom game modes can be added via the API. See [API Documentation](API.md)
 
 ### Q: Are more game modes coming?
 
-Yes, TNTRun, Parkour, and Capture The Flag are planned for future updates.
+Yes, TNTRun, Parkour, and Capture The Flag are in progress for v1.1 (estimated September 2026).
 
 ---
 
@@ -252,10 +255,10 @@ Updates are released monthly. Check Discord for announcements.
 
 ### Q: What's coming in v1.1?
 
-- Ranked system (ELO, seasons, divisions)
-- More game modes (TNTRun, Parkour)
-- Web dashboard
-- Discord integration
+- **GUI Editor** — In-game inventory GUI for arena and tournament setup
+- **Multi-language** — English, Spanish, Portuguese, Russian, Chinese
+- **More game modes** — TNTRun, Parkour, Capture The Flag
+- **Spectator improvements** — `/el spectate off` command
 
 ### Q: How do I request a feature?
 

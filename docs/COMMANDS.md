@@ -1,6 +1,6 @@
 # EmaraLeague — Command Reference
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 > **Last Updated:** August 2026
 
 ---
@@ -15,9 +15,13 @@
 | `/el start` | Start tournament | `emaraleague.admin` |
 | `/el info` | Tournament info | `emaraleague.use` |
 | `/el team` | Team management | `emaraleague.play` |
-| `/el arena` | Arena management | `emaraleague.admin` |
-| `/el help` | Show help | `emaraleague.use` |
-| `/el reload` | Reload config | `emaraleague.reload` |
+|| `/el arena` | Arena management | `emaraleague.admin` |
+|| `/el spectate` | Spectate match | `emaraleague.use` |
+|| `/el rejoin` | Rejoin match | `emaraleague.play` |
+|| `/el history` | Match history | `emaraleague.use` |
+|| `/el stats` | Player statistics | `emaraleague.use` |
+|| `/el help` | Show help | `emaraleague.use` |
+|| `/el reload` | Reload config | `emaraleague.reload` |
 
 **Aliases:** `/el`, `/emaraleague`, `/league`
 
@@ -31,13 +35,16 @@ Create a new tournament.
 
 **Arguments:**
 - `name` — Tournament name (3-24 chars, alphanumeric)
-- `mode` — Game mode (`duels`, `spleef`, `sumo`)
+- `mode` — Game mode (`duels`, `spleef`, `sumo`, `tnt-run`, `parkour`, `capture-the-flag`)
 
 **Example:**
 ```
 /el create SummerCup duels
 /el create SpleefTournament spleef
 /el create SumoChampionship sumo
+/el create TNTChallenge tnt-run
+/el create ParkourRace parkour
+/el create CTFBattle capture-the-flag
 ```
 
 **Permission:** `emaraleague.create` (default: op)
@@ -273,6 +280,94 @@ Delete an arena.
 
 ---
 
+### `/el spectate <tournament>`
+
+Spectate an active match in a tournament.
+
+**Arguments:**
+- `tournament` — Tournament name
+
+**Example:**
+```
+/el spectate SummerCup
+```
+
+**Permission:** `emaraleague.use` (default: true)
+
+**Notes:**
+- Teleports you to the arena
+- Sets you to spectator mode
+- Use `/el spectate off` to stop (planned for v1.1)
+
+---
+
+### `/el rejoin`
+
+Rejoin your active match after disconnecting.
+
+**Example:**
+```
+/el rejoin
+```
+
+**Permission:** `emaraleague.play` (default: true)
+
+**Notes:**
+- Must be in an active match
+- 5-minute grace period from disconnect
+- Teleports you back to arena
+- Restores survival mode
+
+---
+
+### `/el history`
+
+View recent match history.
+
+**Example:**
+```
+/el history
+```
+
+**Permission:** `emaraleague.use` (default: true)
+
+**Output:**
+```
+Recent Matches
+  Alpha vs Beta — Alpha won (duels)
+  Team1 vs Team2 — Team1 won (spleef)
+```
+
+---
+
+### `/el stats [player]`
+
+View player statistics.
+
+**Arguments:**
+- `player` — Optional player name (default: yourself)
+
+**Example:**
+```
+/el stats
+/el stats Notch
+```
+
+**Permission:** `emaraleague.use` (default: true)
+
+**Output:**
+```
+Statistics for Notch
+  Wins: 5
+  Losses: 2
+  Kills: 10
+  Deaths: 3
+  Win Rate: 71.4%
+  K/D Ratio: 3.33
+```
+
+---
+
 ## ⚙️ Utility Commands
 
 ### `/el help [command]`
@@ -311,13 +406,14 @@ Reload configuration files.
 
 ## 🔒 Permission Defaults
 
-| Permission | Default | Description |
-|------------|---------|-------------|
-| `emaraleague.use` | true | Basic commands |
-| `emaraleague.play` | true | Join/leave tournaments |
-| `emaraleague.create` | op | Create tournaments |
-| `emaraleague.admin` | op | Admin commands |
-| `emaraleague.reload` | op | Reload config |
+|| Permission | Default | Description |
+||------------|---------|-------------|
+|| `emaraleague.use` | true | Basic commands |
+|| `emaraleague.play` | true | Join/leave tournaments |
+|| `emaraleague.create` | op | Create tournaments |
+|| `emaraleague.admin` | op | Admin commands |
+|| `emaraleague.reload` | op | Reload config |
+|| `emaraleague.spectate` | true | Spectate matches |
 
 ---
 

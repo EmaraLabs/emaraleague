@@ -1,6 +1,6 @@
 # EmaraLeague — Marketplace Listing
 
-> **Version:** 1.0.0
+> **Version:** 1.0.1
 > **Last Updated:** August 2026
 
 ---
@@ -11,7 +11,7 @@
 EmaraLeague — Premium Minecraft Tournament & Events Engine
 
 ### Tagline
-Run professional esports tournaments on your Minecraft server. 3 game modes, auto-brackets, live scoring, arena management. Paper 1.21+.
+Run professional esports tournaments on your Minecraft server. 3 game modes (6 in v1.1), auto-brackets, live scoring, arena management. Paper 1.21+.
 
 ### Description
 
@@ -29,10 +29,13 @@ EmaraLeague is a premium Paper plugin that lets you create, manage, and run tour
 - Real-time match tracking
 - Champion detection and announcement
 
-**3 Built-in Game Modes**
+**3 Built-in Game Modes** (6 total in v1.1)
 - **Duels** — Classic 1v1 PvP with kill tracking
 - **Spleef** — Block-breaking elimination with fall detection
 - **Sumo** — Knockback arena battles with ring-out elimination
+- **TNTRun** — Blocks disappear under your feet (v1.1)
+- **Parkour** — Race to finish with checkpoints (v1.1)
+- **Capture The Flag** — Team-based flag capture (v1.1)
 
 **Arena Management**
 - Create unlimited arenas with custom locations
@@ -46,8 +49,10 @@ EmaraLeague is a premium Paper plugin that lets you create, manage, and run tour
 - Victory/defeat title announcements
 - Live scoreboard with stats
 - Team management (auto-assign or manual)
-- Spectator mode for watching matches
+- Spectator mode for watching matches (`/el spectate`)
+- Rejoin active match after disconnect (`/el rejoin`)
 - Match history and player statistics
+- Maximum concurrent match limit
 
 **Customization**
 - Fully configurable via config.yml
@@ -60,13 +65,17 @@ EmaraLeague is a premium Paper plugin that lets you create, manage, and run tour
 
 ### 📋 Commands
 
-| Command | Description |
-|---------|-------------|
-| `/el create <name> <mode>` | Create tournament |
-| `/el join <tournament>` | Join tournament |
-| `/el start <tournament>` | Start tournament |
-| `/el arena create <name>` | Create arena |
-| `/el team list <tournament>` | List teams |
+|| Command | Description |
+||---------|-------------|
+|| `/el create <name> <mode>` | Create tournament |
+|| `/el join <tournament>` | Join tournament |
+|| `/el start <tournament>` | Start tournament |
+|| `/el arena create <name>` | Create arena |
+|| `/el team list <tournament>` | List teams |
+|| `/el spectate <tournament>` | Spectate match |
+|| `/el rejoin` | Rejoin match |
+|| `/el history` | Match history |
+|| `/el stats` | Player statistics |
 
 [View full command reference →](https://docs.emaralabs.com/commands)
 
@@ -125,10 +134,12 @@ EmaraLeague is a premium Paper plugin that lets you create, manage, and run tour
 
 **EmaraLeague Core — $19.99** (one-time purchase)
 
-✅ 3 game modes (Duels, Spleef, Sumo)
+✅ 3 game modes (Duels, Spleef, Sumo) — 6 total in v1.1
 ✅ Full tournament system
 ✅ Arena management
 ✅ Live scoring
+✅ Spectator mode & rejoin
+✅ ProGuard obfuscation
 ✅ Free v1.x updates
 
 **Launch Discount:** $14.99 (first week only — save $5!)
@@ -137,12 +148,14 @@ EmaraLeague is a premium Paper plugin that lets you create, manage, and run tour
 
 ### 🆕 Coming Soon (Addons)
 
-| Addon | Price | Features |
-|-------|-------|----------|
-| **Ranked System** | $9.99 | ELO, seasons, divisions, leaderboards |
-| **More Modes Pack** | $7.99 | TNTRun, Parkour, Capture The Flag |
-| **Discord Bot** | $7.99 | Auto-announce results, match history |
-| **Web Dashboard** | $14.99 | Online tournament management |
+|| Addon | Price | Features |
+||-------|-------|----------|
+|| **GUI Editor** | Free (v1.1) | In-game inventory GUI for setup |
+|| **Multi-language** | Free (v1.1) | EN, ES, PT, RU, ZH |
+|| **Ranked System** | $9.99 | ELO, seasons, divisions, leaderboards |
+|| **More Modes Pack** | $7.99 | TNTRun, Parkour, Capture The Flag |
+|| **Discord Bot** | $7.99 | Auto-announce results, match history |
+|| **Web Dashboard** | $14.99 | Online tournament management |
 
 *Addons sold separately. Core plugin required.*
 
@@ -163,7 +176,7 @@ EmaraLeague is a premium Paper plugin that lets you create, manage, and run tour
 - **Downloads:** 500+
 - **Rating:** 4.9/5
 - **Servers:** 100+
-- **Last Updated:** August 2026
+- **Last Updated:** August 2026 (v1.0.1)
 
 ---
 
@@ -191,13 +204,18 @@ Run professional tournaments on your Minecraft server. 3 game modes, auto-bracke
 EmaraLeague is a premium Paper plugin that lets you create, manage, and run tournaments with automated brackets, live scoring, and arena management.
 
 **Features:**
-- 3 game modes (Duels, Spleef, Sumo)
+- 3 game modes (Duels, Spleef, Sumo) — 6 total in v1.1
 - Single elimination brackets
 - Arena management with auto-reset
 - Live scoreboard with stats
 - BossBar countdown with sounds
 - Team auto-assignment
+- Spectator mode (`/el spectate`)
+- Rejoin match (`/el rejoin`)
+- Match history & player stats
+- Max concurrent match limit
 - SQLite/MySQL support
+- ProGuard obfuscation
 - Fully configurable
 
 **Requirements:**
@@ -219,12 +237,14 @@ EmaraLeague — Tournament & Events Engine
 Premium tournament plugin for Paper 1.21+. 3 game modes, auto-brackets, live scoring, arena management.
 
 **Key Features:**
-- Duels, Spleef, Sumo game modes
+- Duels, Spleef, Sumo game modes (6 total in v1.1)
 - Auto-bracket advancement
 - Arena reset after matches
 - Live scoreboard and BossBar countdown
 - Team auto-assignment
+- Spectator mode & rejoin command
 - Player statistics and match history
+- ProGuard obfuscation
 - Fully configurable
 
 **Price:** $19.99

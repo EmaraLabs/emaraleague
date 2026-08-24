@@ -210,7 +210,6 @@ Plugin Minecraft premium untuk **tournament & events**. Server owner boleh buat 
 |-------|-------|----------|
 | Replay System | $12.99 | Record & playback matches |
 | Multi-server | TBD | Cross-server tournaments |
-
 ---
 
 ## 🔧 Configuration Reference
