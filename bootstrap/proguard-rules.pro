@@ -35,6 +35,14 @@
 -keep class com.emaralabs.emaraleague.libs.slf4j.** { *; }
 -keep class com.emaralabs.emaraleague.libs.commonslogging.** { *; }
 
+# ── Keep Adventure Components (Reflection) ───────────────────────
+-keep class net.kyori.adventure.** { *; }
+-keep class net.kyori.examination.** { *; }
+-keep class net.kyori.option.** { *; }
+-dontwarn net.kyori.adventure.**
+-dontwarn net.kyori.examination.**
+-dontwarn net.kyori.option.**
+
 # ── Keep Serializable ────────────────────────────────────────────
 -keepclassmembers class * implements java.io.Serializable { *; }
 
