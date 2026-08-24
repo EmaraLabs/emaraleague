@@ -56,6 +56,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
     private MatchHistoryPersistence matchHistoryPersistence;
     private PlayerStatsPersistence playerStatsPersistence;
     private DisconnectGraceManager disconnectGraceManager;
+    private com.emaralabs.emaraleague.core.player.PlayerStats playerStats;
     private final Map<String, EmaraAddon> addons = new ConcurrentHashMap<>();
 
     @Override
@@ -95,6 +96,10 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
             matchHistoryPersistence = new MatchHistoryPersistence(this);
             playerStatsPersistence = new PlayerStatsPersistence(this);
+
+            playerStats = new com.emaralabs.emaraleague.core.player.PlayerStats();
+            playerStatsPersistence.load(playerStats);
+            matchEngine.setPlayerStats(playerStats);
 
             MatchScoreboard scoreboard = new MatchScoreboard(matchEngine);
             matchEngine.setScoreboard(scoreboard);
@@ -198,6 +203,18 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
     public GameModeRegistry getGameModeRegistry() {
         return gameModeRegistry;
+    }
+
+    public MatchHistoryPersistence getMatchHistoryPersistence() {
+        return matchHistoryPersistence;
+    }
+
+    public PlayerStatsPersistence getPlayerStatsPersistence() {
+        return playerStatsPersistence;
+    }
+
+    public com.emaralabs.emaraleague.core.player.PlayerStats getPlayerStats() {
+        return playerStats;
     }
 
     // ── EmaraLeagueAPI Implementation ───────────────────────────────

@@ -102,8 +102,9 @@ public final class TournamentManager {
         return switch (current) {
             case REGISTRATION -> next == TournamentState.STARTING;
             case STARTING -> next == TournamentState.IN_PROGRESS;
-            case IN_PROGRESS -> next == TournamentState.ENDED;
+            case IN_PROGRESS -> next == TournamentState.ENDED || next == TournamentState.CANCELLED;
             case ENDED -> false;
+            case CANCELLED -> false;
         };
     }
 
@@ -303,6 +304,20 @@ public final class TournamentManager {
         }
 
         return assignPlayerToTeam(tournamentName, smallest.id(), playerId);
+    }
+
+    public Tournament cancelTournament(String name) {
+        Tournament current = byName.get(name.toLowerCase());
+        if (current == null) {
+            throw new IllegalArgumentException("Tournament not found: " + name);
+        }
+        Tournament updated = current.withState(TournamentState.CANCELLED);
+        byName.put(name.toLowerCase(), updated);
+        byId.put(updated.id(), updated);
+        if (persistence != null) {
+            persistence.update(updated);
+        }
+        return updated;
     }
 
     public boolean canStart(String tournamentName) {

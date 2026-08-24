@@ -42,6 +42,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
     private static final List<SubCommand> SUB_COMMANDS = List.of(
             new SubCommand("create", "/emaraleague create <name> <mode>", "Create a new tournament", "emaraleague.create"),
             new SubCommand("delete", "/emaraleague delete <name>", "Delete a tournament", "emaraleague.admin"),
+            new SubCommand("cancel", "/emaraleague cancel <name>", "Cancel an ongoing tournament", "emaraleague.admin"),
             new SubCommand("join", "/emaraleague join <tournament>", "Join a tournament", "emaraleague.play"),
             new SubCommand("leave", "/emaraleague leave", "Leave your current tournament", "emaraleague.play"),
             new SubCommand("team", "/emaraleague team <join|leave|list>", "Manage teams", "emaraleague.play"),
@@ -91,6 +92,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             switch (sub) {
                 case "create" -> handleCreate(sender, args);
                 case "delete" -> handleDelete(sender, args);
+                case "cancel" -> handleCancel(sender, args);
                 case "join" -> handleJoin(sender, args);
                 case "leave" -> handleLeave(sender);
                 case "team" -> handleTeam(sender, args);
@@ -251,10 +253,60 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(MessageFormatter.success("Tournament '" + name + "' deleted."));
     }
 
+    private void handleCancel(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague cancel <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        if (!tournamentManager.exists(name)) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+            return;
+        }
+
+        Tournament tournament = tournamentManager.getTournament(name).get();
+        if (tournament.state() == TournamentState.REGISTRATION) {
+            sender.sendMessage(MessageFormatter.error("Tournament has not started yet. Use /el delete instead."));
+            return;
+        }
+        if (tournament.state() == TournamentState.ENDED || tournament.state() == TournamentState.CANCELLED) {
+            sender.sendMessage(MessageFormatter.error("Tournament is already finished."));
+            return;
+        }
+
+        // Cancel tournament
+        tournamentManager.cancelTournament(name);
+
+        // Cleanup: end active matches, teleport players back
+        com.emaralabs.emaraleague.core.match.MatchEngine matchEngine =
+                com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
+        for (com.emaralabs.emaraleague.core.tournament.Match match : matchEngine.getMatches(name)) {
+            if (match.state() != com.emaralabs.emaraleague.core.tournament.MatchState.ENDED) {
+                matchEngine.endMatch(match.id(), null);
+            }
+        }
+
+        sender.sendMessage(MessageFormatter.success("Tournament '" + name + "' has been cancelled."));
+    }
+
     private void handleHistory(CommandSender sender) {
-        // TODO: Wire to MatchHistoryPersistence for persisted history
-        sender.sendMessage(MessageFormatter.info("Match history feature coming soon."));
-        sender.sendMessage(MessageFormatter.muted("This will show your recent matches."));
+        java.util.List<com.emaralabs.emaraleague.core.tournament.MatchRecord> history =
+                com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchHistoryPersistence().load();
+
+        if (history.isEmpty()) {
+            sender.sendMessage(MessageFormatter.info("No match history yet."));
+            return;
+        }
+
+        sender.sendMessage(MessageFormatter.header("Recent Matches"));
+        int count = Math.min(5, history.size());
+        for (int i = history.size() - 1; i >= history.size() - count && i >= 0; i--) {
+            com.emaralabs.emaraleague.core.tournament.MatchRecord record = history.get(i);
+            String line = String.format("%s vs %s — %s won (%s)",
+                    record.teamAName(), record.teamBName(), record.winnerName(), record.mode());
+            sender.sendMessage(Component.text("  " + line, EmaraTheme.INFO));
+        }
     }
 
     private void handleStats(CommandSender sender, String[] args) {
@@ -263,10 +315,34 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        // TODO: Wire to PlayerStats for real statistics
-        sender.sendMessage(MessageFormatter.info("Statistics for " + player.getName()));
-        sender.sendMessage(MessageFormatter.muted("Wins: 0 | Losses: 0 | Kills: 0 | Deaths: 0"));
-        sender.sendMessage(MessageFormatter.muted("Full statistics coming soon."));
+        com.emaralabs.emaraleague.core.player.PlayerStats stats =
+                com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine().getPlayerStats();
+        if (stats == null) {
+            sender.sendMessage(MessageFormatter.error("Statistics not available."));
+            return;
+        }
+
+        UUID playerId = player.getUniqueId();
+        int wins = stats.getWins(playerId);
+        int losses = stats.getLosses(playerId);
+        int kills = stats.getKills(playerId);
+        int deaths = stats.getDeaths(playerId);
+        double winRate = stats.getWinRate(playerId);
+        double kd = stats.getKDRatio(playerId);
+
+        sender.sendMessage(MessageFormatter.header("Statistics for " + player.getName()));
+        sender.sendMessage(Component.text("  Wins: ", EmaraTheme.MUTED)
+                .append(Component.text(wins, EmaraTheme.SUCCESS)));
+        sender.sendMessage(Component.text("  Losses: ", EmaraTheme.MUTED)
+                .append(Component.text(losses, EmaraTheme.ERROR)));
+        sender.sendMessage(Component.text("  Kills: ", EmaraTheme.MUTED)
+                .append(Component.text(kills, EmaraTheme.PRIMARY)));
+        sender.sendMessage(Component.text("  Deaths: ", EmaraTheme.MUTED)
+                .append(Component.text(deaths, EmaraTheme.WARNING)));
+        sender.sendMessage(Component.text("  Win Rate: ", EmaraTheme.MUTED)
+                .append(Component.text(String.format("%.1f%%", winRate * 100), EmaraTheme.INFO)));
+        sender.sendMessage(Component.text("  K/D Ratio: ", EmaraTheme.MUTED)
+                .append(Component.text(String.format("%.2f", kd), EmaraTheme.ACCENT)));
     }
 
     private void handleTeam(CommandSender sender, String[] args) {
