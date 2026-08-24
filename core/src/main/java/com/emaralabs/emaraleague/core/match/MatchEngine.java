@@ -13,8 +13,8 @@ import com.emaralabs.emaraleague.core.player.PlayerStats;
 import com.emaralabs.emaraleague.core.player.SpectatorManager;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.*;
+import com.emaralabs.emaraleague.core.ui.EmaraScoreboard;
 import com.emaralabs.emaraleague.core.ui.MatchAnnouncer;
-import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -37,7 +37,7 @@ public final class MatchEngine {
     private TeleportService teleportService;
     private PlayerSessionManager playerSessions;
     private BracketGenerator bracketGenerator;
-    private MatchScoreboard scoreboard;
+    private EmaraScoreboard scoreboard;
     private MatchAnnouncer announcer;
     private ArenaResetService arenaResetService;
     private SpectatorManager spectatorManager;
@@ -76,7 +76,7 @@ public final class MatchEngine {
         this.bracketGenerator = bracketGenerator;
     }
 
-    public void setScoreboard(MatchScoreboard scoreboard) {
+    public void setScoreboard(EmaraScoreboard scoreboard) {
         this.scoreboard = scoreboard;
     }
 

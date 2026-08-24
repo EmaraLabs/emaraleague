@@ -23,6 +23,7 @@ val proguardConfig by configurations.creating
 dependencies {
     compileOnly("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     implementation(project(":core"))
+    implementation("net.megavex:scoreboard-library-implementation:${providers.gradleProperty("scoreboardLibraryVersion").get()}")
     implementation(project(":api"))
     implementation(project(":editor"))
     implementation(project(":modules:duels"))
@@ -63,6 +64,7 @@ tasks.shadowJar {
     relocate("io.leangen.geantyref", "com.emaralabs.emaraleague.libs.geantyref")
     relocate("org.slf4j", "com.emaralabs.emaraleague.libs.slf4j")
     relocate("org.apache.commons.logging", "com.emaralabs.emaraleague.libs.commonslogging")
+    relocate("net.megavex.scoreboardlibrary", "com.emaralabs.emaraleague.libs.scoreboardlibrary")
 
     mergeServiceFiles()
 }

@@ -13,6 +13,7 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:${providers.gradleProperty("miniMessageVersion").get()}")
     implementation("org.spongepowered:configurate-yaml:${providers.gradleProperty("configurateVersion").get()}")
     implementation("io.leangen.geantyref:geantyref:1.3.16")
+    implementation("net.megavex:scoreboard-library-implementation:${providers.gradleProperty("scoreboardLibraryVersion").get()}")
     implementation(project(":api"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")

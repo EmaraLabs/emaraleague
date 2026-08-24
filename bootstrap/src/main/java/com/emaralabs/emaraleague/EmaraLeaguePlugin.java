@@ -20,8 +20,8 @@ import com.emaralabs.emaraleague.core.player.PlayerStatsPersistence;
 import com.emaralabs.emaraleague.core.scheduler.PaperScheduler;
 import com.emaralabs.emaraleague.core.teleport.TeleportService;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
+import com.emaralabs.emaraleague.core.ui.EmaraScoreboard;
 import com.emaralabs.emaraleague.core.ui.MatchAnnouncer;
-import com.emaralabs.emaraleague.core.ui.MatchScoreboard;
 import com.emaralabs.emaraleague.infrastructure.database.DatabaseManager;
 import com.emaralabs.emaraleague.infrastructure.database.TournamentRepository;
 import com.emaralabs.emaraleague.listener.PlayerEventListener;
@@ -105,11 +105,15 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             playerStatsPersistence.load(playerStats);
             matchEngine.setPlayerStats(playerStats);
 
-            MatchScoreboard scoreboard = new MatchScoreboard(matchEngine);
-            matchEngine.setScoreboard(scoreboard);
-
             MatchAnnouncer announcer = new MatchAnnouncer();
             matchEngine.setAnnouncer(announcer);
+
+            // Premium scoreboard with Scoreboard Library + gradient animation
+            net.megavex.scoreboardlibrary.api.ScoreboardLibrary scoreboardLibrary =
+                    net.megavex.scoreboardlibrary.api.ScoreboardLibrary.loadScoreboardLibrary(this);
+            com.emaralabs.emaraleague.core.ui.EmaraScoreboard scoreboard =
+                    new com.emaralabs.emaraleague.core.ui.EmaraScoreboard(scoreboardLibrary, matchEngine);
+            matchEngine.setScoreboard(scoreboard);
 
             ArenaResetService arenaResetService = new ArenaResetService();
             matchEngine.setArenaResetService(arenaResetService);
