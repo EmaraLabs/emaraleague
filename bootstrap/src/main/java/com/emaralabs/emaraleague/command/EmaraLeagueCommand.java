@@ -287,7 +287,11 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
                 com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
         for (com.emaralabs.emaraleague.core.tournament.Match match : matchEngine.getMatches(name)) {
             if (match.state() != com.emaralabs.emaraleague.core.tournament.MatchState.ENDED) {
-                matchEngine.endMatch(match.id(), null);
+                try {
+                    matchEngine.endMatch(match.id(), null);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Failed to end match " + match.id() + " during cancel: " + e.getMessage());
+                }
             }
         }
 
@@ -485,6 +489,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         try {
             // Transition tournament state
             tournamentManager.transitionState(name, TournamentState.STARTING);
+            tournamentManager.transitionState(name, TournamentState.IN_PROGRESS);
 
             // Generate bracket and start first match
             com.emaralabs.emaraleague.core.bracket.SingleEliminationBracket bracketGen =

@@ -122,7 +122,7 @@ class EmaraLeagueCommandTest {
 
         cmd.onCommand(sender, null, "emaraleague", new String[]{"start", "SummerCup"});
 
-        assertEquals(com.emaralabs.emaraleague.core.tournament.TournamentState.STARTING,
+        assertEquals(com.emaralabs.emaraleague.core.tournament.TournamentState.IN_PROGRESS,
                 tournamentManager.getTournament("SummerCup").get().state());
     }
 

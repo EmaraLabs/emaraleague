@@ -376,6 +376,10 @@ public final class MatchEngine {
         if (match == null) {
             throw new IllegalArgumentException("Match not found: " + matchId);
         }
+        // Idempotent — if already ENDED (e.g. cancel called twice), return silently
+        if (match.state() == MatchState.ENDED) {
+            return match;
+        }
         validateMatchTransition(match.state(), MatchState.ENDED);
         Match updated = match.withWinner(winner);
         matches.put(matchId, updated);
@@ -421,7 +425,11 @@ public final class MatchEngine {
 
         // Cancel countdown if running
         if (countdown != null) {
-            countdown.cancel();
+            try {
+                countdown.cancel();
+            } catch (Exception ignored) {
+                // Countdown already finished or cancelled
+            }
         }
 
         // Teleport players back to lobby
