@@ -48,6 +48,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
     private TeleportService teleportService;
     private MatchEngine matchEngine;
     private GameModeRegistry gameModeRegistry;
+    private com.emaralabs.emaraleague.core.config.ConfigManager configManager;
     private DatabaseManager databaseManager;
     private TournamentRepository tournamentRepository;
     private WinConditionEvaluator winConditionEvaluator;
@@ -85,11 +86,14 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             arenaPersistence = new ArenaPersistence(this);
             arenaPersistence.load(arenaManager);
 
+            configManager = new com.emaralabs.emaraleague.core.config.ConfigManager(this);
+
             playerSessionManager = new PlayerSessionManager();
             teleportService = new TeleportService();
             matchEngine = new MatchEngine(tournamentManager, arenaManager);
             matchEngine.setTeleportService(teleportService);
             matchEngine.setPlayerSessionManager(playerSessionManager);
+            matchEngine.setMaxConcurrentMatches(configManager.getMaxConcurrentMatches());
             gameModeRegistry = new GameModeRegistry();
             winConditionEvaluator = new WinConditionEvaluator(playerSessionManager);
             matchCountdown = new MatchCountdown(new PaperScheduler(this), null);
@@ -199,6 +203,10 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
     public MatchEngine getMatchEngine() {
         return matchEngine;
+    }
+
+    public com.emaralabs.emaraleague.core.config.ConfigManager getConfigManager() {
+        return configManager;
     }
 
     public GameModeRegistry getGameModeRegistry() {

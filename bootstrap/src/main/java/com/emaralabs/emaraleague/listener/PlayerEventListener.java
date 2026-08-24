@@ -58,6 +58,7 @@ public final class PlayerEventListener implements Listener {
             Optional<UUID> matchId = sessions.getMatchId(playerId);
             if (matchId.isPresent()) {
                 disconnectGraceManager.recordDisconnect(playerId, matchId.get());
+                sessions.markDisconnected(playerId);
                 // Don't eliminate immediately — allow rejoin within grace period
                 return;
             }

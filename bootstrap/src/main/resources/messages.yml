@@ -23,6 +23,12 @@ tournament-started: "<#00D26A>Tournament '</#00D26A><#FFFFFF><name></#FFFFFF><#0
 tournament-info: "<#4FC3F7>Tournament: </#4FC3F7><#FFFFFF><name></#FFFFFF> <#555555>|</#555555> <#4FC3F7>Mode: </#4FC3F7><#FFFFFF><mode></#FFFFFF> <#555555>|</#555555> <#4FC3F7>Status: </#4FC3F7><#FFFFFF><status></#FFFFFF>"
 tournament-not-found: "<#FF4444>Tournament '</#FF4444><#FFFFFF><name></#FFFFFF><#FF4444>' not found.</#FF4444>"
 
+# ── Spectate & Rejoin ──
+spectate-success: "<#00D26A>You are now spectating the match.</#00D26A>"
+spectate-off: "<#00D26A>You stopped spectating.</#00D26A>"
+rejoin-success: "<#00D26A>You have rejoined the match!</#00D26A>"
+rejoin-failed: "<#FF4444>Could not rejoin — match not found or grace period expired.</#FF4444>"
+
 # ── Help Menu ──
 help-header: "<bold><#FFD700>EmaraLeague Commands</#FFD700></bold>"
 help-create: '<#FFB800>/emaraleague create \<name\> \<mode\></#FFB800> <#555555>—</#555555> <#4FC3F7>Create a new tournament</#4FC3F7>'

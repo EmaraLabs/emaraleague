@@ -45,10 +45,15 @@ public final class MatchEngine {
     private MatchTimeout matchTimeout;
     private InventoryManager inventoryManager;
     private final Map<UUID, MatchRecord> matchHistory = new ConcurrentHashMap<>();
+    private int maxConcurrentMatches = 4;
 
     public MatchEngine(TournamentManager tournaments, ArenaManager arenas) {
         this.tournaments = tournaments;
         this.arenas = arenas;
+    }
+
+    public void setMaxConcurrentMatches(int maxConcurrentMatches) {
+        this.maxConcurrentMatches = maxConcurrentMatches;
     }
 
     public void setGameModeRegistry(GameModeRegistry registry) {
@@ -111,6 +116,16 @@ public final class MatchEngine {
         return Map.copyOf(matchHistory);
     }
 
+    public Map<UUID, UUID> getMatchToArena() {
+        return Map.copyOf(matchToArena);
+    }
+
+    public int getGlobalActiveMatchCount() {
+        return (int) matches.values().stream()
+                .filter(m -> m.state() == MatchState.STARTING || m.state() == MatchState.INGAME)
+                .count();
+    }
+
     public Match createMatch(String tournamentName, Team teamA, Team teamB) {
         Tournament tournament = tournaments.getTournament(tournamentName)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found: " + tournamentName));
@@ -126,6 +141,12 @@ public final class MatchEngine {
         if (match == null) {
             throw new IllegalArgumentException("Match not found: " + matchId);
         }
+
+        // Enforce max concurrent matches
+        if (getGlobalActiveMatchCount() >= maxConcurrentMatches) {
+            throw new IllegalStateException("Maximum concurrent matches reached (" + maxConcurrentMatches + "). Please wait for a match to finish.");
+        }
+
         Match updated;
         // Synchronized validation to prevent race condition
         synchronized (matches) {

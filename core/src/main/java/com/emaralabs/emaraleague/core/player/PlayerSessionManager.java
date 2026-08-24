@@ -52,4 +52,12 @@ public final class PlayerSessionManager {
     public void clearMatch(UUID playerId) {
         playerToMatch.remove(playerId);
     }
+
+    public void markDisconnected(UUID playerId) {
+        getSession(playerId).ifPresent(s -> s.setDisconnectTime(System.currentTimeMillis()));
+    }
+
+    public void markReconnected(UUID playerId) {
+        getSession(playerId).ifPresent(s -> s.setDisconnectTime(0));
+    }
 }

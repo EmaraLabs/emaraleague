@@ -51,6 +51,8 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             new SubCommand("arena", "/emaraleague arena <create|setcenter|setlobby|list|delete>", "Manage arenas", "emaraleague.admin"),
             new SubCommand("history", "/emaraleague history", "View match history", "emaraleague.use"),
             new SubCommand("stats", "/emaraleague stats [player]", "View player statistics", "emaraleague.use"),
+            new SubCommand("spectate", "/emaraleague spectate <tournament>", "Spectate an active match", "emaraleague.use"),
+            new SubCommand("rejoin", "/emaraleague rejoin", "Rejoin your active match", "emaraleague.play"),
             new SubCommand("help", "/emaraleague help [command]", "Show help", "emaraleague.use"),
             new SubCommand("reload", "/emaraleague reload", "Reload configuration", "emaraleague.reload")
     );
@@ -101,6 +103,8 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
                 case "arena" -> handleArena(sender, args);
                 case "history" -> handleHistory(sender);
                 case "stats" -> handleStats(sender, args);
+                case "spectate" -> handleSpectate(sender, args);
+                case "rejoin" -> handleRejoin(sender);
                 case "help" -> sendHelp(sender);
                 case "reload" -> handleReload(sender);
                 default -> sender.sendMessage(messages.get("unknown-command"));
@@ -680,6 +684,117 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(messages.get("reload-success"));
     }
 
+    private void handleSpectate(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague spectate <tournament>")));
+            return;
+        }
+
+        String tournamentName = args[1];
+        if (!tournamentManager.exists(tournamentName)) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", tournamentName)));
+            return;
+        }
+
+        com.emaralabs.emaraleague.core.match.MatchEngine matchEngine =
+                com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
+
+        // Find active match
+        List<com.emaralabs.emaraleague.core.tournament.Match> activeMatches = matchEngine.getMatchesByState(
+                tournamentName, com.emaralabs.emaraleague.core.tournament.MatchState.INGAME);
+        if (activeMatches.isEmpty()) {
+            activeMatches = matchEngine.getMatchesByState(tournamentName, com.emaralabs.emaraleague.core.tournament.MatchState.STARTING);
+        }
+        if (activeMatches.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("No active match in this tournament."));
+            return;
+        }
+
+        com.emaralabs.emaraleague.core.tournament.Match match = activeMatches.get(0);
+
+        // Get arena for teleport
+        UUID arenaId = matchEngine.getMatchToArena().get(match.id());
+        if (arenaId == null) {
+            sender.sendMessage(MessageFormatter.error("Match has no arena assigned yet."));
+            return;
+        }
+
+        Optional<Arena> arena = arenaManager.getArena(arenaId);
+        if (arena.isEmpty() || arena.get().getCenter() == null) {
+            sender.sendMessage(MessageFormatter.error("Arena not ready for spectating."));
+            return;
+        }
+
+        // Add spectator
+        matchEngine.getSpectatorManager().addSpectator(player.getUniqueId(), match.id(), arenaId);
+        player.teleport(arena.get().getCenter());
+        player.setGameMode(org.bukkit.GameMode.SPECTATOR);
+        sender.sendMessage(MessageFormatter.success("You are now spectating the match."));
+        sender.sendMessage(MessageFormatter.muted("Use /emaraleague spectate off to stop."));
+    }
+
+    private void handleRejoin(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+
+        com.emaralabs.emaraleague.core.match.MatchEngine matchEngine =
+                com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
+
+        // Check if player is in an active match (via session)
+        com.emaralabs.emaraleague.core.player.PlayerSessionManager sessions =
+                com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getPlayerSessionManager();
+
+        UUID playerId = player.getUniqueId();
+        Optional<UUID> matchId = sessions.getMatchId(playerId);
+
+        if (matchId.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("You are not in an active match."));
+            return;
+        }
+
+        Optional<com.emaralabs.emaraleague.core.tournament.Match> match = matchEngine.getMatch(matchId.get());
+        if (match.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("Match not found."));
+            return;
+        }
+
+        if (match.get().state() != com.emaralabs.emaraleague.core.tournament.MatchState.INGAME) {
+            sender.sendMessage(MessageFormatter.error("Match is not in progress."));
+            return;
+        }
+
+        // Check grace period (5 minutes = 300 seconds)
+        long disconnectTime = sessions.getSession(playerId).map(s -> s.getDisconnectTime()).orElse(0L);
+        if (disconnectTime > 0 && (System.currentTimeMillis() - disconnectTime) > 300_000) {
+            sender.sendMessage(MessageFormatter.error("Rejoin grace period has expired."));
+            return;
+        }
+
+        // Teleport back to arena
+        UUID arenaId = matchEngine.getMatchToArena().get(matchId.get());
+        if (arenaId == null) {
+            sender.sendMessage(MessageFormatter.error("Arena not found."));
+            return;
+        }
+
+        Optional<Arena> arena = arenaManager.getArena(arenaId);
+        if (arena.isEmpty() || arena.get().getCenter() == null) {
+            sender.sendMessage(MessageFormatter.error("Arena not ready."));
+            return;
+        }
+
+        player.teleport(arena.get().getCenter());
+        player.setGameMode(org.bukkit.GameMode.SURVIVAL);
+        sessions.markReconnected(playerId);
+        sender.sendMessage(MessageFormatter.success("You have rejoined the match!"));
+    }
+
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(messages.get("help-header"));
         sender.sendMessage(Component.empty());
@@ -696,9 +811,9 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
                 continue;
             }
             String name = sub.name.toLowerCase();
-            if (name.equals("create") || name.equals("delete") || name.equals("join") || name.equals("leave") || name.equals("start") || name.equals("info")) {
+            if (name.equals("create") || name.equals("delete") || name.equals("join") || name.equals("leave") || name.equals("start") || name.equals("info") || name.equals("spectate")) {
                 tournamentCmds.add(sub);
-            } else if (name.equals("team")) {
+            } else if (name.equals("team") || name.equals("rejoin")) {
                 teamCmds.add(sub);
             } else if (name.equals("arena")) {
                 arenaCmds.add(sub);
@@ -768,7 +883,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (args[0].toLowerCase()) {
                 case "create" -> filterCompletions(List.of("<name>"), args[1]);
-                case "delete", "join", "start", "info", "team" -> filterCompletions(getTournamentNames(), args[1]);
+                case "delete", "join", "start", "info", "team", "spectate" -> filterCompletions(getTournamentNames(), args[1]);
                 case "arena" -> filterCompletions(List.of("create", "setcenter", "setlobby", "list", "delete"), args[1]);
                 default -> Collections.emptyList();
             };

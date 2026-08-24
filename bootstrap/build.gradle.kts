@@ -18,6 +18,8 @@ java {
     }
 }
 
+val proguardConfig by configurations.creating
+
 dependencies {
     compileOnly("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     implementation(project(":core"))
@@ -42,6 +44,7 @@ dependencies {
     testImplementation("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     testImplementation("org.mockito:mockito-core:5.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
+    proguardConfig("com.guardsquare:proguard-ant:7.6.0")
 }
 
 tasks.test {
@@ -65,27 +68,43 @@ tasks.shadowJar {
 }
 
 // ProGuard obfuscation for production release
-// Run with: ./gradlew :bootstrap:proguard
-// Note: ProGuard plugin requires manual setup — use CLI tool or CI pipeline
-// For now, obfuscation is optional for v1.0 release (debug build acceptable)
-tasks.register("obfuscate") {
-    description = "Obfuscates the shadow JAR using ProGuard"
+// Run with: ./gradlew :bootstrap:obfuscate
+// Uses ProGuard CLI (downloaded automatically) — avoids Gradle plugin Kotlin issues
+tasks.register<JavaExec>("obfuscate") {
+    description = "Obfuscates the shadow JAR using ProGuard CLI"
     group = "build"
     dependsOn(tasks.shadowJar)
 
-    doLast {
-        val inputJar = layout.buildDirectory.file("libs/EmaraLeague-${project.version}.jar")
-        val outputJar = layout.buildDirectory.file("libs/EmaraLeague-${project.version}-obfuscated.jar")
-        val proguardRules = file("proguard-rules.pro")
+    classpath = proguardConfig
+    mainClass.set("proguard.ProGuard")
 
+    val inputJar = layout.buildDirectory.file("libs/EmaraLeague-${project.version}.jar")
+    val outputJar = layout.buildDirectory.file("libs/EmaraLeague-${project.version}-obfuscated.jar")
+    val proguardRules = file("proguard-rules.pro")
+    val javaHome = System.getProperty("java.home")
+
+    argumentProviders.add {
+        listOf(
+            "-injars", inputJar.get().asFile.absolutePath,
+            "-outjars", outputJar.get().asFile.absolutePath,
+            "-libraryjars", "$javaHome/jmods/java.base.jmod",
+            "-libraryjars", "$javaHome/jmods/java.logging.jmod",
+            "-libraryjars", "$javaHome/jmods/java.sql.jmod",
+            "-libraryjars", "$javaHome/jmods/java.desktop.jmod",
+            "-libraryjars", "$javaHome/jmods/java.naming.jmod",
+            "-libraryjars", "$javaHome/jmods/java.management.jmod",
+            "-libraryjars", "$javaHome/jmods/jdk.unsupported.jmod",
+            "-libraryjars", configurations.compileClasspath.get().files.find { it.name.contains("paper-api") }?.absolutePath ?: "",
+            "-include", proguardRules.absolutePath,
+            "-printmapping", layout.buildDirectory.file("proguard/mapping.txt").get().asFile.absolutePath
+        )
+    }
+
+    doFirst {
         if (!proguardRules.exists()) {
-            logger.warn("ProGuard rules not found, skipping obfuscation")
-            return@doLast
+            throw GradleException("ProGuard rules not found: ${proguardRules.absolutePath}")
         }
-
-        logger.lifecycle("Obfuscation requires ProGuard CLI tool or CI pipeline setup")
-        logger.lifecycle("Input: ${inputJar.get()}")
-        logger.lifecycle("Output: ${outputJar.get()}")
-        logger.lifecycle("Rules: $proguardRules")
+        // Ensure proguard output directory exists
+        layout.buildDirectory.file("proguard").get().asFile.mkdirs()
     }
 }

@@ -6,6 +6,8 @@
 
 # ── Keep Main Plugin Class ───────────────────────────────────────
 -keep public class com.emaralabs.emaraleague.EmaraLeaguePlugin { *; }
+-keepclassmembers class com.emaralabs.emaraleague.EmaraLeaguePlugin { *; }
+-keepclassmembers class com.emaralabs.emaraleague.integrations.placeholderapi.** { *; }
 
 # ── Keep Bukkit Entry Points ─────────────────────────────────────
 -keep class * extends org.bukkit.plugin.java.JavaPlugin { *; }
@@ -36,7 +38,7 @@
 -keepclassmembers class * { native <methods>; }
 
 # ── Dontwarn for Missing Dependencies ────────────────────────────
-# These are provided by Paper server at runtime
+# These are provided by Paper server at runtime or optional integrations
 -dontwarn org.bukkit.**
 -dontwarn io.papermc.**
 -dontwarn net.kyori.**
@@ -48,6 +50,29 @@
 -dontwarn com.github.benmanes.**
 -dontwarn org.slf4j.**
 -dontwarn org.apache.commons.logging.**
+-dontwarn me.clip.placeholderapi.**
+-dontwarn net.luckperms.**
+-dontwarn net.milkbowl.vault.**
+-dontwarn org.hibernate.**
+-dontwarn com.codahale.metrics.**
+-dontwarn io.prometheus.**
+-dontwarn javax.transaction.**
+-dontwarn javax.servlet.**
+-dontwarn waffle.**
+-dontwarn kotlinx.**
+-dontwarn java.lang.instrument.**
+-dontwarn java.lang.invoke.**
+-dontwarn jdk.internal.**
+-dontwarn module-info
+-dontwarn com.google.auto.value.**
+-dontwarn io.micrometer.**
+-dontwarn javassist.**
+-dontwarn org.ietf.jgss.**
+-dontwarn software.amazon.awssdk.**
+-dontwarn javax.lang.model.**
+-dontwarn java.awt.**
+-dontwarn com.sun.jna.**
+-dontwarn com.emaralabs.emaraleague.integrations.placeholderapi.**
 
 # ── Optimization ─────────────────────────────────────────────────
 -optimizationpasses 3

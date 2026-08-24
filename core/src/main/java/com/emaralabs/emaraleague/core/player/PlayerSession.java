@@ -13,6 +13,7 @@ public class PlayerSession {
     private int deaths;
     private int wins;
     private int losses;
+    private long disconnectTime;
 
     public PlayerSession(UUID playerId, String playerName) {
         this.playerId = playerId;
@@ -23,6 +24,7 @@ public class PlayerSession {
         this.deaths = 0;
         this.wins = 0;
         this.losses = 0;
+        this.disconnectTime = 0;
     }
 
     public UUID getPlayerId() {
@@ -87,5 +89,13 @@ public class PlayerSession {
 
     public void addLoss() {
         this.losses++;
+    }
+
+    public long getDisconnectTime() {
+        return disconnectTime;
+    }
+
+    public void setDisconnectTime(long disconnectTime) {
+        this.disconnectTime = disconnectTime;
     }
 }
