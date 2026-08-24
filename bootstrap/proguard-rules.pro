@@ -31,6 +31,10 @@
 # ── Keep Configurate-accessed Classes (Reflection) ───────────────
 -keep class com.emaralabs.emaraleague.core.config.** { *; }
 
+# ── Keep SLF4J Service Providers (ServiceLoader) ─────────────────
+-keep class com.emaralabs.emaraleague.libs.slf4j.** { *; }
+-keep class com.emaralabs.emaraleague.libs.commonslogging.** { *; }
+
 # ── Keep Serializable ────────────────────────────────────────────
 -keepclassmembers class * implements java.io.Serializable { *; }
 
