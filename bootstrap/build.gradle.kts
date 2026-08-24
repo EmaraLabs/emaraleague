@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":infrastructure:logging"))
     implementation(project(":infrastructure:security"))
     implementation("org.slf4j:slf4j-api:${providers.gradleProperty("slf4jVersion").get()}")
+    implementation("org.slf4j:slf4j-jdk14:${providers.gradleProperty("slf4jVersion").get()}")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     testImplementation("org.mockito:mockito-core:5.11.0")
