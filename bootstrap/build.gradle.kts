@@ -66,6 +66,7 @@ tasks.shadowJar {
     relocate("org.slf4j", "com.emaralabs.emaraleague.libs.slf4j")
     relocate("org.apache.commons.logging", "com.emaralabs.emaraleague.libs.commonslogging")
     relocate("net.megavex.scoreboardlibrary", "com.emaralabs.emaraleague.libs.scoreboardlibrary")
+    relocate("net.milkbowl.vault", "com.emaralabs.emaraleague.libs.vault")
 
     mergeServiceFiles()
 }

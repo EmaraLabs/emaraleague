@@ -12,7 +12,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     implementation(project(":api"))
     implementation(project(":core"))
-    compileOnly("com.github.MilkBowl:VaultAPI:${providers.gradleProperty("vaultVersion").get()}")
+    implementation("com.github.MilkBowl:VaultAPI:${providers.gradleProperty("vaultVersion").get()}")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     testImplementation("com.github.MilkBowl:VaultAPI:${providers.gradleProperty("vaultVersion").get()}")

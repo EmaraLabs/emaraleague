@@ -89,6 +89,7 @@
 -dontwarn com.sun.jna.**
 -dontwarn com.emaralabs.emaraleague.integrations.placeholderapi.**
 -dontwarn com.emaralabs.emaraleague.libs.scoreboardlibrary.**
+-dontwarn com.emaralabs.emaraleague.libs.vault.**
 
 # ── Optimization ─────────────────────────────────────────────────
 -optimizationpasses 3
