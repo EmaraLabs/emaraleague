@@ -23,7 +23,8 @@ val proguardConfig by configurations.creating
 dependencies {
     compileOnly("io.papermc.paper:paper-api:${providers.gradleProperty("paperVersion").get()}")
     implementation(project(":core"))
-    implementation("net.megavex:scoreboard-library-implementation:${providers.gradleProperty("scoreboardLibraryVersion").get()}")
+    implementation("net.megavex:scoreboard-library-api:${providers.gradleProperty("scoreboardLibraryVersion").get()}")
+    runtimeOnly("net.megavex:scoreboard-library-implementation:${providers.gradleProperty("scoreboardLibraryVersion").get()}")
     implementation(project(":api"))
     implementation(project(":editor"))
     implementation(project(":modules:duels"))

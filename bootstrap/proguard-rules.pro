@@ -35,6 +35,9 @@
 -keep class com.emaralabs.emaraleague.libs.slf4j.** { *; }
 -keep class com.emaralabs.emaraleague.libs.commonslogging.** { *; }
 
+# ── Keep Scoreboard Library (Implementation Loading) ─────────────
+-keep class com.emaralabs.emaraleague.libs.scoreboardlibrary.** { *; }
+
 # ── Keep Adventure Components (Reflection) ───────────────────────
 -keep class net.kyori.adventure.** { *; }
 -keep class net.kyori.examination.** { *; }
