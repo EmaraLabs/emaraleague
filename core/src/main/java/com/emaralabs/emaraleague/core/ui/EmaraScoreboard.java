@@ -126,21 +126,21 @@ public final class EmaraScoreboard {
         // Animated title (frame updates on each refresh)
         Component title = animator.nextFrame();
 
-        // Build lines
+        // Build lines with user-friendly colors
         java.util.List<Component> lines = new java.util.ArrayList<>();
         lines.add(Component.text(" "));
-        lines.add(Component.text("⏱ Time: ", EmaraTheme.MUTED)
-                .append(Component.text(formatTime(timerSeconds), EmaraTheme.INFO)));
-        lines.add(Component.text("🏟 Arena: ", EmaraTheme.MUTED)
-                .append(Component.text(getArenaName(match), EmaraTheme.TEXT)));
+        lines.add(Component.text("⏱ ", EmaraTheme.MUTED)
+                .append(Component.text(formatTime(timerSeconds), EmaraTheme.TIMER)));
+        lines.add(Component.text("🏟 ", EmaraTheme.MUTED)
+                .append(Component.text(getArenaName(match), EmaraTheme.ARENA)));
         lines.add(Component.text(" "));
-        lines.add(Component.text("▸ " + match.teamA().name(), EmaraTheme.ACCENT, TextDecoration.BOLD));
-        lines.add(Component.text("  Players: " + match.teamA().getPlayerCount(), EmaraTheme.TEXT));
-        lines.add(Component.text("  Kills: " + getTeamKills(match.teamA()), EmaraTheme.SUCCESS));
+        lines.add(Component.text("▸ " + match.teamA().name(), EmaraTheme.TEAM_A, TextDecoration.BOLD));
+        lines.add(Component.text("  " + match.teamA().getPlayerCount() + " players", EmaraTheme.TEXT));
+        lines.add(Component.text("  " + getTeamKills(match.teamA()) + " kills", EmaraTheme.STATS));
         lines.add(Component.text("  "));
-        lines.add(Component.text("▸ " + match.teamB().name(), EmaraTheme.ERROR, TextDecoration.BOLD));
-        lines.add(Component.text("  Players: " + match.teamB().getPlayerCount(), EmaraTheme.TEXT));
-        lines.add(Component.text("  Kills: " + getTeamKills(match.teamB()), EmaraTheme.SUCCESS));
+        lines.add(Component.text("▸ " + match.teamB().name(), EmaraTheme.TEAM_B, TextDecoration.BOLD));
+        lines.add(Component.text("  " + match.teamB().getPlayerCount() + " players", EmaraTheme.TEXT));
+        lines.add(Component.text("  " + getTeamKills(match.teamB()) + " kills", EmaraTheme.STATS));
         lines.add(Component.text(" "));
         lines.add(buildStateLine(match));
 
@@ -155,23 +155,23 @@ public final class EmaraScoreboard {
     }
 
     /**
-     * Build state indicator line with animation.
+     * Build state indicator line with user-friendly text.
      */
     private Component buildStateLine(Match match) {
         return switch (match.state()) {
             case PENDING -> Component.text("⏳ ", EmaraTheme.MUTED)
-                    .append(Component.text("PENDING", EmaraTheme.MUTED));
+                    .append(Component.text("Waiting...", EmaraTheme.MUTED));
             case STARTING -> Component.text("▶ ", EmaraTheme.WARNING)
-                    .append(Component.text("STARTING", EmaraTheme.WARNING, TextDecoration.BOLD));
-            case INGAME -> Component.text("● ", EmaraTheme.SUCCESS)
-                    .append(Component.text("IN PROGRESS", EmaraTheme.SUCCESS, TextDecoration.BOLD));
+                    .append(Component.text("Get Ready!", EmaraTheme.WARNING, TextDecoration.BOLD));
+            case INGAME -> Component.text("🔥 ", EmaraTheme.SUCCESS)
+                    .append(Component.text("Match in Progress", EmaraTheme.SUCCESS, TextDecoration.BOLD));
             case ENDED -> {
                 if (match.winner() != null) {
                     yield Component.text("🏆 ", EmaraTheme.PRIMARY)
-                            .append(Component.text(match.winner().name() + " WINS", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+                            .append(Component.text(match.winner().name() + " Wins!", EmaraTheme.PRIMARY, TextDecoration.BOLD));
                 }
                 yield Component.text("■ ", EmaraTheme.INFO)
-                        .append(Component.text("ENDED", EmaraTheme.INFO));
+                        .append(Component.text("Match Ended", EmaraTheme.INFO));
             }
         };
     }

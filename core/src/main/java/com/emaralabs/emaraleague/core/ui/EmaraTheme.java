@@ -42,6 +42,25 @@ public final class EmaraTheme {
     /** Pure white for primary text content. */
     public static final TextColor TEXT = TextColor.color(0xFFFFFF);
 
+    // ── Scoreboard-specific colors (user-friendly) ──────────────────
+    /** Team A / friendly team — soft blue. */
+    public static final TextColor TEAM_A = TextColor.color(0x4FC3F7);
+
+    /** Team B / enemy team — soft red. */
+    public static final TextColor TEAM_B = TextColor.color(0xFF6B6B);
+
+    /** Timer display — soft green. */
+    public static final TextColor TIMER = TextColor.color(0x7ED321);
+
+    /** Arena name — soft purple. */
+    public static final TextColor ARENA = TextColor.color(0xB39DDB);
+
+    /** Stats / numbers — bright yellow. */
+    public static final TextColor STATS = TextColor.color(0xFFD54F);
+
+    /** Separator lines — subtle gray. */
+    public static final TextColor SEPARATOR = TextColor.color(0x424242);
+
     // ── Convenience: status color lookup ────────────────────────────
     public static TextColor status(StatusLevel level) {
         return switch (level) {

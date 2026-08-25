@@ -677,11 +677,22 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         Tournament t = tournament.get();
+        String friendlyStatus = getFriendlyStatus(t.state());
         sender.sendMessage(messages.get("tournament-info", Map.of(
                 "name", t.name(),
                 "mode", t.mode(),
-                "status", t.state().name()
+                "status", friendlyStatus
         )));
+    }
+
+    private String getFriendlyStatus(TournamentState state) {
+        return switch (state) {
+            case REGISTRATION -> "Open for Registration";
+            case STARTING -> "Starting Soon";
+            case IN_PROGRESS -> "Match in Progress";
+            case ENDED -> "Tournament Ended";
+            case CANCELLED -> "Tournament Cancelled";
+        };
     }
 
     private void handleReload(CommandSender sender) {
@@ -801,7 +812,11 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(messages.get("help-header"));
+        // Header with gradient effect
+        sender.sendMessage(Component.text("✦ ", EmaraTheme.PRIMARY)
+                .append(Component.text("EmaraLeague", EmaraTheme.PRIMARY, TextDecoration.BOLD))
+                .append(Component.text(" ✦", EmaraTheme.PRIMARY)));
+        sender.sendMessage(Component.text("Tournament Commands", EmaraTheme.MUTED));
         sender.sendMessage(Component.empty());
 
         // Group commands by category
@@ -829,9 +844,10 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        // Display by category
+        // Display by category with icons
         if (!tournamentCmds.isEmpty()) {
-            sender.sendMessage(Component.text("Tournament:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            sender.sendMessage(Component.text("🏆 ", EmaraTheme.WARNING)
+                    .append(Component.text("Tournament", EmaraTheme.WARNING, TextDecoration.BOLD)));
             for (SubCommand sub : tournamentCmds) {
                 sendHelpLine(sender, sub);
             }
@@ -839,7 +855,8 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!teamCmds.isEmpty()) {
-            sender.sendMessage(Component.text("Teams:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            sender.sendMessage(Component.text("👥 ", EmaraTheme.TEAM_A)
+                    .append(Component.text("Teams", EmaraTheme.TEAM_A, TextDecoration.BOLD)));
             for (SubCommand sub : teamCmds) {
                 sendHelpLine(sender, sub);
             }
@@ -847,7 +864,8 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!arenaCmds.isEmpty()) {
-            sender.sendMessage(Component.text("Arenas:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            sender.sendMessage(Component.text("🏟 ", EmaraTheme.ARENA)
+                    .append(Component.text("Arenas", EmaraTheme.ARENA, TextDecoration.BOLD)));
             for (SubCommand sub : arenaCmds) {
                 sendHelpLine(sender, sub);
             }
@@ -855,7 +873,8 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!infoCmds.isEmpty()) {
-            sender.sendMessage(Component.text("Info:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            sender.sendMessage(Component.text("📊 ", EmaraTheme.INFO)
+                    .append(Component.text("Info", EmaraTheme.INFO, TextDecoration.BOLD)));
             for (SubCommand sub : infoCmds) {
                 sendHelpLine(sender, sub);
             }
@@ -863,18 +882,26 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!adminCmds.isEmpty()) {
-            sender.sendMessage(Component.text("Admin:", EmaraTheme.PRIMARY, TextDecoration.BOLD));
+            sender.sendMessage(Component.text("⚙ ", EmaraTheme.ACCENT)
+                    .append(Component.text("Admin", EmaraTheme.ACCENT, TextDecoration.BOLD)));
             for (SubCommand sub : adminCmds) {
                 sendHelpLine(sender, sub);
             }
         }
+
+        // Footer
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.text("Use ", EmaraTheme.MUTED)
+                .append(Component.text("/el <command>", EmaraTheme.WARNING))
+                .append(Component.text(" to get started", EmaraTheme.MUTED)));
     }
 
     private void sendHelpLine(CommandSender sender, SubCommand sub) {
         Component line = Component.text()
-                .append(Component.text("  " + sub.usage, EmaraTheme.WARNING))
+                .append(Component.text("  ▸ ", EmaraTheme.SEPARATOR))
+                .append(Component.text(sub.usage, EmaraTheme.WARNING))
                 .append(Component.text(" — ", EmaraTheme.MUTED))
-                .append(Component.text(sub.description, EmaraTheme.INFO))
+                .append(Component.text(sub.description, EmaraTheme.TEXT))
                 .build();
         sender.sendMessage(line);
     }
@@ -889,7 +916,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return switch (args[0].toLowerCase()) {
                 case "create" -> filterCompletions(List.of("<name>"), args[1]);
                 case "delete", "join", "start", "info", "team", "spectate" -> filterCompletions(getTournamentNames(), args[1]);
-                case "arena" -> filterCompletions(List.of("create", "setcenter", "setlobby", "list", "delete"), args[1]);
+                case "arena" -> filterCompletions(List.of("create", "setcenter", "setlobby", "setspawn", "list", "delete"), args[1]);
                 default -> Collections.emptyList();
             };
         }

@@ -195,7 +195,16 @@ public final class MatchEngine {
         showScoreboardToPlayers(matchId, updated);
 
         if (countdown != null) {
-            countdown.startCountdown(updated, 10, () -> beginPlay(matchId));
+            countdown.startCountdown(updated, 10, () -> {
+                beginPlay(matchId);
+                // Update scoreboard to show INGAME state
+                if (scoreboard != null) {
+                    Match updatedMatch = matches.get(matchId);
+                    if (updatedMatch != null) {
+                        scoreboard.updateAll(updatedMatch);
+                    }
+                }
+            });
         }
 
         return updated;

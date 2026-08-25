@@ -2,7 +2,6 @@ package com.emaralabs.emaraleague.core.ui;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.List;
 
@@ -13,16 +12,15 @@ import java.util.List;
 public final class GradientAnimator {
 
     private static final MiniMessage MINI = MiniMessage.miniMessage();
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
 
-    private final List<String> frames;
+    private final List<Component> frames;
     private int currentFrame = 0;
 
     /**
      * Create animator with pre-built frames.
-     * @param frames List of MiniMessage strings, one per frame
+     * @param frames List of Adventure Components, one per frame
      */
-    public GradientAnimator(List<String> frames) {
+    public GradientAnimator(List<Component> frames) {
         this.frames = List.copyOf(frames);
     }
 
@@ -33,12 +31,29 @@ public final class GradientAnimator {
      * @return GradientAnimator ready to use
      */
     public static GradientAnimator goldPulse(String text, int frameCount) {
-        List<String> frames = new java.util.ArrayList<>();
+        List<Component> frames = new java.util.ArrayList<>();
         for (int i = 0; i < frameCount; i++) {
             double ratio = (double) i / frameCount;
             String color1 = interpolateColor(0xFFD700, 0xFFB800, ratio);
             String color2 = interpolateColor(0xFFB800, 0xFFD700, ratio);
-            frames.add("<gradient:" + color1 + ":" + color2 + ">" + text + "</gradient>");
+            String miniMessage = "<gradient:" + color1 + ":" + color2 + ">" + text + "</gradient>";
+            frames.add(MINI.deserialize(miniMessage));
+        }
+        return new GradientAnimator(frames);
+    }
+
+    /**
+     * Create a simple two-color fade (more reliable than gradient).
+     * @param text The text to animate
+     * @param frameCount Number of frames
+     * @return GradientAnimator with color fade
+     */
+    public static GradientAnimator colorFade(String text, int frameCount) {
+        List<Component> frames = new java.util.ArrayList<>();
+        int[] colors = {0xFFD700, 0xFFB800, 0xFFA500, 0xFFB800};
+        for (int i = 0; i < frameCount; i++) {
+            int color = colors[i % colors.length];
+            frames.add(Component.text(text, net.kyori.adventure.text.format.TextColor.color(color)));
         }
         return new GradientAnimator(frames);
     }
@@ -48,16 +63,16 @@ public final class GradientAnimator {
      * Call this on each update tick.
      */
     public Component nextFrame() {
-        String frame = frames.get(currentFrame);
+        Component frame = frames.get(currentFrame);
         currentFrame = (currentFrame + 1) % frames.size();
-        return MINI.deserialize(frame);
+        return frame;
     }
 
     /**
      * Get current frame without advancing.
      */
     public Component currentFrame() {
-        return MINI.deserialize(frames.get(currentFrame));
+        return frames.get(currentFrame);
     }
 
     /**
