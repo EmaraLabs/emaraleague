@@ -59,4 +59,13 @@ public final class DisconnectGraceManager {
         disconnectedPlayers.entrySet().removeIf(e -> now - e.getValue() > gracePeriodSeconds * 1000L);
         playerMatchMap.entrySet().removeIf(e -> !disconnectedPlayers.containsKey(e.getKey()));
     }
+
+    public java.util.Set<UUID> getDisconnectedPlayers() {
+        return new java.util.HashSet<>(disconnectedPlayers.keySet());
+    }
+
+    public void clearPlayer(UUID playerId) {
+        disconnectedPlayers.remove(playerId);
+        playerMatchMap.remove(playerId);
+    }
 }

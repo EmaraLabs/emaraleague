@@ -26,6 +26,7 @@ public final class PlayerEventListener implements Listener {
     private final MessageRegistry messages;
     private final WinConditionEvaluator winEvaluator;
     private final DisconnectGraceManager disconnectGraceManager;
+    private boolean killAnnouncementsEnabled = true;
     private double fallThreshold = 0;
 
     public PlayerEventListener(MatchEngine matchEngine, PlayerSessionManager sessions, MessageRegistry messages, WinConditionEvaluator winEvaluator, DisconnectGraceManager disconnectGraceManager) {
@@ -38,6 +39,10 @@ public final class PlayerEventListener implements Listener {
 
     public void setFallThreshold(double fallThreshold) {
         this.fallThreshold = fallThreshold;
+    }
+
+    public void setKillAnnouncementsEnabled(boolean enabled) {
+        this.killAnnouncementsEnabled = enabled;
     }
 
     @EventHandler
@@ -123,6 +128,11 @@ public final class PlayerEventListener implements Listener {
             sumo.onPlayerFall(playerId);
         }
 
+        // Kill announcement
+        if (killAnnouncementsEnabled) {
+            announceElimination(player, match);
+        }
+
         // Check win condition
         if (gameMode != null && winEvaluator.isMatchOver(match, gameMode)) {
             Optional<Team> winner = winEvaluator.evaluate(match, gameMode);
@@ -133,6 +143,36 @@ public final class PlayerEventListener implements Listener {
 
         // Clear player session
         sessions.clearMatch(playerId);
+    }
+
+    private void announceElimination(Player eliminated, Match match) {
+        // Find killer (player on opposing team who got the kill, if tracked)
+        String eliminatedName = eliminated.getName();
+        Team eliminatedTeam = match.teamA().playerIds().contains(eliminated.getUniqueId()) ? match.teamA() : match.teamB();
+        Team opposingTeam = eliminatedTeam.id().equals(match.teamA().id()) ? match.teamB() : match.teamA();
+
+        String message = "<gray>" + eliminatedName + " was eliminated!</gray>";
+        if (!opposingTeam.playerIds().isEmpty()) {
+            UUID killerId = opposingTeam.playerIds().iterator().next();
+            Player killer = org.bukkit.Bukkit.getPlayer(killerId);
+            if (killer != null) {
+                message = "<gray>" + killer.getName() + " eliminated " + eliminatedName + "!</gray>";
+            }
+        }
+
+        // Broadcast to all match players
+        for (UUID playerId : match.teamA().playerIds()) {
+            Player p = org.bukkit.Bukkit.getPlayer(playerId);
+            if (p != null && p.isOnline()) {
+                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(message));
+            }
+        }
+        for (UUID playerId : match.teamB().playerIds()) {
+            Player p = org.bukkit.Bukkit.getPlayer(playerId);
+            if (p != null && p.isOnline()) {
+                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(message));
+            }
+        }
     }
 
     private void handleFall(Player player) {

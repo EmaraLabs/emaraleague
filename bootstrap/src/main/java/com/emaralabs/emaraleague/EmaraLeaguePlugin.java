@@ -57,7 +57,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
     private MatchHistoryPersistence matchHistoryPersistence;
     private PlayerStatsPersistence playerStatsPersistence;
     private DisconnectGraceManager disconnectGraceManager;
+    private com.emaralabs.emaraleague.core.player.LogoutGuardService logoutGuardService;
     private com.emaralabs.emaraleague.core.player.PlayerStats playerStats;
+    private com.emaralabs.emaraleague.integrations.vault.VaultIntegration vaultIntegration;
     private final Map<String, EmaraAddon> addons = new ConcurrentHashMap<>();
 
     @Override
@@ -88,6 +90,9 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
             configManager = new com.emaralabs.emaraleague.core.config.ConfigManager(this);
 
+            // Vault integration (economy rewards)
+            vaultIntegration = new com.emaralabs.emaraleague.integrations.vault.VaultIntegration(this);
+
             playerSessionManager = new PlayerSessionManager();
             teleportService = new TeleportService();
             matchEngine = new MatchEngine(tournamentManager, arenaManager);
@@ -108,6 +113,19 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             MatchAnnouncer announcer = new MatchAnnouncer();
             matchEngine.setAnnouncer(announcer);
 
+            // Match effects (countdown titles, victory fireworks)
+            com.emaralabs.emaraleague.core.effects.MatchEffects effects =
+                    new com.emaralabs.emaraleague.core.effects.MatchEffects(this);
+            effects.setCountdownTitlesEnabled(configManager.isCountdownTitles());
+            effects.setVictoryFireworksEnabled(configManager.isVictoryFireworks());
+            matchEngine.setEffects(effects);
+
+            // Reward system (tournament winner rewards)
+            com.emaralabs.emaraleague.core.reward.RewardSystem rewardSystem =
+                    new com.emaralabs.emaraleague.core.reward.RewardSystem(this);
+            rewardSystem.loadConfig(getConfig());
+            matchEngine.setRewardSystem(rewardSystem);
+
             // Premium scoreboard with Scoreboard Library + gradient animation
             net.megavex.scoreboardlibrary.api.ScoreboardLibrary scoreboardLibrary =
                     net.megavex.scoreboardlibrary.api.ScoreboardLibrary.loadScoreboardLibrary(this);
@@ -119,12 +137,21 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             matchEngine.setArenaResetService(arenaResetService);
 
             MatchTimeout matchTimeout = new MatchTimeout(new PaperScheduler(this), matchEngine);
+            matchTimeout.setTimeoutSeconds(configManager.getMatchTimeoutSeconds());
             matchEngine.setMatchTimeout(matchTimeout);
 
             InventoryManager inventoryManager = new InventoryManager();
             matchEngine.setInventoryManager(inventoryManager);
 
             disconnectGraceManager = new DisconnectGraceManager();
+            disconnectGraceManager.setGracePeriodSeconds(configManager.getDisconnectGraceSeconds());
+
+            // Logout guard — auto-declare enemy winner if player doesn't rejoin
+            logoutGuardService = new com.emaralabs.emaraleague.core.player.LogoutGuardService(
+                    this, matchEngine, playerSessionManager, disconnectGraceManager);
+            logoutGuardService.setEnabled(configManager.isLogoutGuardEnabled());
+            logoutGuardService.setLogoutMessage(configManager.getLogoutMessage());
+            logoutGuardService.start();
 
             gameModeRegistry.register(new DuelsGameMode());
             gameModeRegistry.register(new SpleefGameMode());
@@ -150,6 +177,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             registerCommand("emaraleague", "EmaraLeague tournament management", List.of("el", "league"), basicCommand);
 
             PlayerEventListener listener = new PlayerEventListener(matchEngine, playerSessionManager, command.getMessages(), winConditionEvaluator, disconnectGraceManager);
+            listener.setKillAnnouncementsEnabled(configManager.isKillAnnouncements());
             getServer().getPluginManager().registerEvents(listener, this);
 
             getLogger().info("EmaraLeague enabled");
@@ -162,6 +190,11 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
     @Override
     public void onDisable() {
+        // Stop logout guard
+        if (logoutGuardService != null) {
+            logoutGuardService.stop();
+        }
+
         // Disable all addons first
         for (EmaraAddon addon : List.copyOf(addons.values())) {
             unregisterAddon(addon.getId());
@@ -211,6 +244,10 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
     public com.emaralabs.emaraleague.core.config.ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public com.emaralabs.emaraleague.integrations.vault.VaultIntegration getVaultIntegration() {
+        return vaultIntegration;
     }
 
     public GameModeRegistry getGameModeRegistry() {

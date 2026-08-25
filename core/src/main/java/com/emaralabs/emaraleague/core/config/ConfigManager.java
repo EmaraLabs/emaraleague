@@ -25,6 +25,13 @@ public class ConfigManager {
     private int maxConcurrentMatches = 4;
     private boolean bossbarCountdown = true;
     private boolean scoreboardEnabled = true;
+    private int matchTimeoutSeconds = 300; // 5 minutes
+    private int disconnectGraceSeconds = 60;
+    private boolean logoutGuardEnabled = true;
+    private String logoutMessage = "<red>%player% has logged out and is disqualified from the tournament!";
+    private boolean countdownTitles = true;
+    private boolean victoryFireworks = true;
+    private boolean killAnnouncements = true;
 
     public ConfigManager(Plugin plugin) {
         this.plugin = plugin;
@@ -69,6 +76,13 @@ public class ConfigManager {
         maxConcurrentMatches = config.getInt("match.max-concurrent", 4);
         bossbarCountdown = config.getBoolean("ui.bossbar-countdown", true);
         scoreboardEnabled = config.getBoolean("ui.scoreboard", true);
+        matchTimeoutSeconds = config.getInt("match.timeout-seconds", 300);
+        disconnectGraceSeconds = config.getInt("match.disconnect-grace-seconds", 60);
+        logoutGuardEnabled = config.getBoolean("match.logout-guard", true);
+        logoutMessage = config.getString("match.logout-message", "<red>%player% has logged out and is disqualified from the tournament!");
+        countdownTitles = config.getBoolean("ui.countdown-titles", true);
+        victoryFireworks = config.getBoolean("ui.victory-fireworks", true);
+        killAnnouncements = config.getBoolean("ui.kill-announcements", true);
     }
 
     public void reload() {
@@ -117,5 +131,33 @@ public class ConfigManager {
 
     public boolean isScoreboardEnabled() {
         return scoreboardEnabled;
+    }
+
+    public int getMatchTimeoutSeconds() {
+        return matchTimeoutSeconds;
+    }
+
+    public int getDisconnectGraceSeconds() {
+        return disconnectGraceSeconds;
+    }
+
+    public boolean isLogoutGuardEnabled() {
+        return logoutGuardEnabled;
+    }
+
+    public String getLogoutMessage() {
+        return logoutMessage;
+    }
+
+    public boolean isCountdownTitles() {
+        return countdownTitles;
+    }
+
+    public boolean isVictoryFireworks() {
+        return victoryFireworks;
+    }
+
+    public boolean isKillAnnouncements() {
+        return killAnnouncements;
     }
 }

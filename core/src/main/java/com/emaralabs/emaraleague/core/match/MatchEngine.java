@@ -44,6 +44,8 @@ public final class MatchEngine {
     private PlayerStats playerStats;
     private MatchTimeout matchTimeout;
     private InventoryManager inventoryManager;
+    private com.emaralabs.emaraleague.core.effects.MatchEffects effects;
+    private com.emaralabs.emaraleague.core.reward.RewardSystem rewardSystem;
     private final Map<UUID, MatchRecord> matchHistory = new ConcurrentHashMap<>();
     private int maxConcurrentMatches = 4;
 
@@ -104,6 +106,14 @@ public final class MatchEngine {
         this.inventoryManager = inventoryManager;
     }
 
+    public void setEffects(com.emaralabs.emaraleague.core.effects.MatchEffects effects) {
+        this.effects = effects;
+    }
+
+    public void setRewardSystem(com.emaralabs.emaraleague.core.reward.RewardSystem rewardSystem) {
+        this.rewardSystem = rewardSystem;
+    }
+
     public SpectatorManager getSpectatorManager() {
         return spectatorManager;
     }
@@ -118,6 +128,18 @@ public final class MatchEngine {
 
     public Map<UUID, UUID> getMatchToArena() {
         return Map.copyOf(matchToArena);
+    }
+
+    public Map<UUID, UUID> getMatchToTournament() {
+        return Map.copyOf(matchToTournament);
+    }
+
+    public TournamentManager getTournamentManager() {
+        return tournaments;
+    }
+
+    public ArenaManager getArenaManager() {
+        return arenas;
     }
 
     public int getGlobalActiveMatchCount() {
@@ -377,6 +399,11 @@ public final class MatchEngine {
             });
         }
 
+        // Update scoreboard to show INGAME state
+        if (scoreboard != null) {
+            scoreboard.updateAll(updated);
+        }
+
         return updated;
     }
 
@@ -452,6 +479,18 @@ public final class MatchEngine {
         // Announce result to players
         announceResultToPlayers(matchId, winner);
 
+        // Launch victory fireworks for winner
+        if (effects != null && winner != null) {
+            UUID arenaIdForFireworks = matchToArena.get(matchId);
+            if (arenaIdForFireworks != null) {
+                arenas.getArena(arenaIdForFireworks).ifPresent(arena -> {
+                    if (arena.getCenter() != null) {
+                        effects.launchVictoryFireworks(arena.getCenter());
+                    }
+                });
+            }
+        }
+
         // Record match history
         UUID historyTournamentId = matchToTournament.get(matchId);
         if (historyTournamentId != null) {
@@ -500,6 +539,22 @@ public final class MatchEngine {
                         matches.put(m.id(), m);
                         matchToTournament.put(m.id(), tournamentId);
                     }
+                }
+
+                // Check if tournament is complete — distribute rewards
+                if (isTournamentComplete(t.name()) && rewardSystem != null && winner != null) {
+                    java.util.UUID championId = winner.playerIds().stream().findFirst().orElse(null);
+                    Team runnerUpTeam = match.teamA().id().equals(winner.id()) ? match.teamB() : match.teamA();
+                    java.util.UUID runnerUpId = runnerUpTeam.playerIds().stream().findFirst().orElse(null);
+
+                    if (championId != null) {
+                        rewardSystem.distributeRewards(championId, runnerUpId, t.name());
+                    }
+
+                    // Mark tournament as ENDED
+                    try {
+                        tournaments.transitionState(t.name(), com.emaralabs.emaraleague.core.tournament.TournamentState.ENDED);
+                    } catch (Exception ignored) {}
                 }
 
                 // Auto-start next match if available

@@ -180,7 +180,12 @@ public final class EmaraScoreboard {
      * Get display name for game mode.
      */
     private String getModeDisplayName(Match match) {
-        // Extract mode from tournament if available, else generic
+        java.util.UUID tournamentId = matchEngine.getMatchToTournament().get(match.id());
+        if (tournamentId != null) {
+            return matchEngine.getTournamentManager().getTournament(tournamentId)
+                    .map(t -> t.mode().toUpperCase().replace("-", " "))
+                    .orElse("MATCH");
+        }
         return "MATCH";
     }
 
@@ -188,16 +193,27 @@ public final class EmaraScoreboard {
      * Get arena name for match.
      */
     private String getArenaName(Match match) {
-        // Lookup from matchEngine
-        return "Arena";
+        java.util.UUID arenaId = matchEngine.getMatchToArena().get(match.id());
+        if (arenaId != null) {
+            return matchEngine.getArenaManager().getArena(arenaId)
+                    .map(a -> a.getName())
+                    .orElse("Unknown");
+        }
+        return "Unknown";
     }
 
     /**
      * Get total kills for a team.
      */
     private int getTeamKills(Team team) {
-        // Placeholder — integrate with PlayerStats later
-        return 0;
+        if (matchEngine.getPlayerStats() == null) {
+            return 0;
+        }
+        int total = 0;
+        for (java.util.UUID playerId : team.playerIds()) {
+            total += matchEngine.getPlayerStats().getKills(playerId);
+        }
+        return total;
     }
 
     /**

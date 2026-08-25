@@ -19,12 +19,17 @@ public final class MatchCountdown {
     private int totalSeconds;
     private boolean running;
     private BossBar bossBar;
+    private com.emaralabs.emaraleague.core.effects.MatchEffects effects;
 
     public MatchCountdown(EmaraScheduler scheduler, MessageRegistry messages) {
         this.scheduler = scheduler;
         this.messages = messages;
         this.running = false;
         this.remainingSeconds = 0;
+    }
+
+    public void setEffects(com.emaralabs.emaraleague.core.effects.MatchEffects effects) {
+        this.effects = effects;
     }
 
     public void startCountdown(Match match, int seconds, Runnable onComplete) {
@@ -47,6 +52,10 @@ public final class MatchCountdown {
             if (remainingSeconds <= 0) {
                 running = false;
                 hideBossBar();
+                // Show FIGHT! title
+                if (effects != null) {
+                    effects.showCountdownTitle(players, 0);
+                }
                 onComplete.run();
                 return;
             }
@@ -60,6 +69,12 @@ public final class MatchCountdown {
             hideBossBar();
             return;
         }
+
+        // Show countdown title for last 3 seconds + FIGHT!
+        if (effects != null && remainingSeconds <= 3) {
+            effects.showCountdownTitle(players, remainingSeconds);
+        }
+
         remainingSeconds--;
         updateBossBar();
     }

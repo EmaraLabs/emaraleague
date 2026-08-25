@@ -16,6 +16,32 @@ match:
   default-mode: duels
   # Maximum concurrent matches per server
   max-concurrent: 4
+  # Maximum match duration in seconds (timeout = match ends)
+  timeout-seconds: 300
+  # Grace period for disconnected players to rejoin (seconds)
+  disconnect-grace-seconds: 60
+  # If player doesn't rejoin within grace, enemy team wins automatically
+  logout-guard: true
+  # Message broadcast when player is disqualified for logout
+  # Placeholders: %player%
+  logout-message: "<red>%player% has logged out and is disqualified from the tournament!"
+
+# Reward settings — distributed when tournament ends
+rewards:
+  # Enable/disable all rewards
+  enabled: false
+  champion:
+    # Console commands to execute (%player% = winner name, %tournament% = tournament name)
+    commands:
+      - "say %player% is the champion of %tournament%!"
+    # Money to give via Vault (requires Vault plugin)
+    money: 100.0
+    # Items to give (Material names)
+    items: []
+  runner-up:
+    commands: []
+    money: 50.0
+    items: []
 
 # Database settings
 database:
@@ -34,3 +60,9 @@ ui:
   bossbar-countdown: true
   # Show scoreboard during match
   scoreboard: true
+  # Show big 3-2-1-FIGHT titles during countdown
+  countdown-titles: true
+  # Launch fireworks for match winner
+  victory-fireworks: true
+  # Announce eliminations in match chat
+  kill-announcements: true
