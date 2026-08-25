@@ -1,4 +1,6 @@
 # EmaraLeague Configuration
+# Do not edit this line — used for automatic migration
+config-version: 2
 
 # Countdown duration before match starts (seconds)
 countdown-seconds: 10

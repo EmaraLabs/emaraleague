@@ -7,10 +7,17 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.logging.Level;
 
+/**
+ * Manages plugin configuration with versioning and migration.
+ * Automatically updates config.yml to latest version while preserving user data.
+ */
 public class ConfigManager {
+
+    private static final int CURRENT_CONFIG_VERSION = 2;
 
     private final Plugin plugin;
     private FileConfiguration config;
@@ -46,6 +53,13 @@ public class ConfigManager {
         }
 
         config = YamlConfiguration.loadConfiguration(configFile);
+
+        // Check and migrate config version
+        int version = config.getInt("config-version", 1);
+        if (version < CURRENT_CONFIG_VERSION) {
+            migrateConfig(version);
+        }
+
         loadValues();
     }
 
@@ -63,6 +77,45 @@ public class ConfigManager {
             }
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Could not save config.yml", e);
+        }
+    }
+
+    /**
+     * Migrate config to latest version while preserving user data.
+     * Adds new keys with defaults, keeps existing user values.
+     */
+    private void migrateConfig(int oldVersion) {
+        plugin.getLogger().info("Migrating config.yml from version " + oldVersion + " to " + CURRENT_CONFIG_VERSION + "...");
+
+        // Load default config from JAR
+        YamlConfiguration defaults = new YamlConfiguration();
+        try (InputStream in = getClass().getResourceAsStream("/config.yml")) {
+            if (in != null) {
+                defaults.load(new InputStreamReader(in));
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not load default config for migration: " + e.getMessage());
+            return;
+        }
+
+        // Merge: add missing keys from defaults, keep existing user values
+        for (String key : defaults.getKeys(true)) {
+            if (!config.contains(key)) {
+                Object defaultValue = defaults.get(key);
+                config.set(key, defaultValue);
+                plugin.getLogger().info("  + Added new config key: " + key + " = " + defaultValue);
+            }
+        }
+
+        // Set new config version
+        config.set("config-version", CURRENT_CONFIG_VERSION);
+
+        // Save migrated config
+        try {
+            config.save(configFile);
+            plugin.getLogger().info("Config migration complete. Version " + CURRENT_CONFIG_VERSION);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Could not save migrated config.yml", e);
         }
     }
 
