@@ -49,14 +49,14 @@ public class TournamentEditorGui extends EmaraGui {
 
     @Override
     protected void build() {
-        // Row 2: Sections
-        gui.setItem(10, EmaraItemBuilder.section(ICON_GENERAL, "General", "Name, mode, format"));
-        gui.setItem(11, EmaraItemBuilder.section(ICON_FORMAT, "Format", "Team size, structure"));
-        gui.setItem(12, EmaraItemBuilder.section(ICON_TEAMS, "Teams", "Manage teams"));
-        gui.setItem(13, EmaraItemBuilder.section(ICON_ARENA, "Arena", "Select arena"));
-        gui.setItem(14, EmaraItemBuilder.section(ICON_RULES, "Rules", "Time, PvP, spectators"));
-        gui.setItem(15, EmaraItemBuilder.section(ICON_SCOREBOARD, "Scoreboard", "Edit scoreboard"));
-        gui.setItem(16, EmaraItemBuilder.section(ICON_PARTICIPANTS, "Participants", "View players"));
+        // Row 2: Sections with click handlers
+        gui.setItem(10, EmaraItemBuilder.section(ICON_GENERAL, "General", "Name, mode, format", click -> openGeneralSettings()));
+        gui.setItem(11, EmaraItemBuilder.section(ICON_FORMAT, "Format", "Team size, structure", click -> openFormatSettings()));
+        gui.setItem(12, EmaraItemBuilder.section(ICON_TEAMS, "Teams", "Manage teams", click -> openTeams()));
+        gui.setItem(13, EmaraItemBuilder.section(ICON_ARENA, "Arena", "Select arena", click -> openArenaSelect()));
+        gui.setItem(14, EmaraItemBuilder.section(ICON_RULES, "Rules", "Time, PvP, spectators", click -> openRules()));
+        gui.setItem(15, EmaraItemBuilder.section(ICON_SCOREBOARD, "Scoreboard", "Edit scoreboard", click -> openScoreboard()));
+        gui.setItem(16, EmaraItemBuilder.section(ICON_PARTICIPANTS, "Participants", "View players", click -> openParticipants()));
 
         // Row 4: Info display
         String status = switch (tournament.state()) {
@@ -83,6 +83,41 @@ public class TournamentEditorGui extends EmaraGui {
         gui.setItem(33, EmaraItemBuilder.value(ICON_INFO, "Participants", participants, "Current participants"));
 
         // Navigation bar
-        gui.setItem(SLOT_CLOSE, EmaraItemBuilder.nav(ICON_CLOSE, "Close"));
+        gui.setItem(SLOT_CLOSE, EmaraItemBuilder.nav(ICON_CLOSE, "Close", click -> close()));
+    }
+
+    private void openGeneralSettings() {
+        player.sendMessage("§7[EmaraLeague] §fGeneral settings — coming soon");
+        // TODO: new GeneralSettingsGui(player, tournamentManager, tournament).open();
+    }
+
+    private void openFormatSettings() {
+        player.sendMessage("§7[EmaraLeague] §fFormat settings — coming soon");
+        // TODO: new FormatSettingsGui(player, tournamentManager, tournament).open();
+    }
+
+    private void openTeams() {
+        player.sendMessage("§7[EmaraLeague] §fTeams management — coming soon");
+        // TODO: new TeamsGui(player, tournamentManager, tournament).open();
+    }
+
+    private void openArenaSelect() {
+        player.sendMessage("§7[EmaraLeague] §fArena selection — coming soon");
+        // TODO: new ArenaSelectGui(player, tournamentManager, tournament).open();
+    }
+
+    private void openRules() {
+        player.sendMessage("§7[EmaraLeague] §fRules configuration — coming soon");
+        // TODO: new RulesGui(player, tournamentManager, tournament).open();
+    }
+
+    private void openScoreboard() {
+        player.sendMessage("§7[EmaraLeague] §fScoreboard editor — coming soon");
+        // TODO: new ScoreboardGui(player, tournamentManager, tournament).open();
+    }
+
+    private void openParticipants() {
+        player.sendMessage("§7[EmaraLeague] §fParticipants view — coming soon");
+        // TODO: new ParticipantsGui(player, tournamentManager, tournament).open();
     }
 }

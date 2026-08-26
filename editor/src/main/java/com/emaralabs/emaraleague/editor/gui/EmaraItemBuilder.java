@@ -31,12 +31,31 @@ public final class EmaraItemBuilder {
     }
 
     /**
+     * Create a section button with click handler.
+     */
+    public static Item section(Material material, String name, String description, java.util.function.Consumer<xyz.xenondevs.invui.item.Click> clickHandler) {
+        ItemBuilder builder = new ItemBuilder(material);
+        builder.setDisplayName(name);
+        builder.addLoreLines(description);
+        return new SimpleItem(builder, clickHandler);
+    }
+
+    /**
      * Create a navigation button (back/close/save).
      */
     public static Item nav(Material material, String name) {
         ItemBuilder builder = new ItemBuilder(material);
         builder.setDisplayName(name);
         return new SimpleItem(builder);
+    }
+
+    /**
+     * Create a navigation button with click handler.
+     */
+    public static Item nav(Material material, String name, java.util.function.Consumer<xyz.xenondevs.invui.item.Click> clickHandler) {
+        ItemBuilder builder = new ItemBuilder(material);
+        builder.setDisplayName(name);
+        return new SimpleItem(builder, clickHandler);
     }
 
     /**
