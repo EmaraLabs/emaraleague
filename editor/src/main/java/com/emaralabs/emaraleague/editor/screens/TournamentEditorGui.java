@@ -38,12 +38,12 @@ public class TournamentEditorGui extends EmaraGui {
     @Override
     protected String[] getStructure() {
         return new String[]{
-                "         ",
-                " GFTARSP ",
-                "         ",
-                "   INFO  ",
-                "         ",
-                "    X    "
+                ".........",
+                ".GFTARSP.",
+                ".........",
+                "...INFO..",
+                ".........",
+                "....X...."
         };
     }
 
@@ -72,6 +72,7 @@ public class TournamentEditorGui extends EmaraGui {
                 ? tournament.getRegisteredCount() + " players"
                 : tournament.teams().size() + " teams, " + tournament.getRegisteredCount() + " players";
 
+        // I, N, F, O from structure: slots 30, 31, 32, 33
         gui.setItem(30, EmaraItemBuilder.info(ICON_INFO, "Info", List.of(
                 "Status: " + status,
                 "Mode: " + tournament.mode(),
@@ -82,8 +83,8 @@ public class TournamentEditorGui extends EmaraGui {
         gui.setItem(32, EmaraItemBuilder.value(ICON_INFO, "Format", format, "Tournament format"));
         gui.setItem(33, EmaraItemBuilder.value(ICON_INFO, "Participants", participants, "Current participants"));
 
-        // Navigation bar
-        gui.setItem(SLOT_CLOSE, EmaraItemBuilder.nav(ICON_CLOSE, "Close", click -> close()));
+        // Navigation bar — X from structure: slot 49
+        gui.setItem(49, EmaraItemBuilder.nav(ICON_CLOSE, "Close", click -> close()));
     }
 
     private void openGeneralSettings() {
