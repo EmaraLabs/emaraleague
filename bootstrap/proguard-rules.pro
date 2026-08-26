@@ -90,6 +90,11 @@
 -dontwarn com.emaralabs.emaraleague.integrations.placeholderapi.**
 -dontwarn com.emaralabs.emaraleague.libs.scoreboardlibrary.**
 -dontwarn com.emaralabs.emaraleague.libs.vault.**
+-dontwarn xyz.xenondevs.inventoryaccess.**
+-dontwarn xyz.xenondevs.invui.**
+-dontwarn net.md_5.bungee.**
+-dontwarn com.mojang.authlib.**
+-dontwarn com.google.common.cache.**
 
 # ── Optimization ─────────────────────────────────────────────────
 -optimizationpasses 3

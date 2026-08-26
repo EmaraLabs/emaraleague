@@ -49,6 +49,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             new SubCommand("team", "/emaraleague team <join|leave|list>", "Manage teams", "emaraleague.play"),
             new SubCommand("start", "/emaraleague start <tournament>", "Start a tournament", "emaraleague.admin"),
             new SubCommand("info", "/emaraleague info <tournament>", "View tournament info", "emaraleague.use"),
+            new SubCommand("editor", "/emaraleague editor <tournament>", "Open tournament editor GUI", "emaraleague.admin"),
             new SubCommand("arena", "/emaraleague arena <create|setcenter|setlobby|list|delete>", "Manage arenas", "emaraleague.admin"),
             new SubCommand("history", "/emaraleague history", "View match history", "emaraleague.use"),
             new SubCommand("stats", "/emaraleague stats [player]", "View player statistics", "emaraleague.use"),
@@ -99,9 +100,10 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
                 case "cancel" -> handleCancel(sender, args);
                 case "join" -> handleJoin(sender, args);
                 case "leave" -> handleLeave(sender);
-                case "team" -> handleTeam(sender, args);
                 case "start" -> handleStart(sender, args);
                 case "info" -> handleInfo(sender, args);
+                case "editor" -> handleEditor(sender, args);
+                case "team" -> handleTeam(sender, args);
                 case "arena" -> handleArena(sender, args);
                 case "history" -> handleHistory(sender);
                 case "stats" -> handleStats(sender, args);
@@ -921,6 +923,28 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             case ENDED -> "Tournament Ended";
             case CANCELLED -> "Tournament Cancelled";
         };
+    }
+
+    private void handleEditor(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.get("player-only"));
+            return;
+        }
+
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague editor <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        Optional<Tournament> tournament = tournamentManager.getTournament(name);
+        if (tournament.isEmpty()) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+            return;
+        }
+
+        // Open GUI editor
+        new com.emaralabs.emaraleague.editor.screens.TournamentEditorGui(player, tournamentManager, tournament.get()).open();
     }
 
     private void handleReload(CommandSender sender) {
