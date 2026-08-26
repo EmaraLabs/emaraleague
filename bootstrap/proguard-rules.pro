@@ -101,6 +101,16 @@
 -keep class xyz.xenondevs.inventoryaccess.** { *; }
 -keepclassmembers class xyz.xenondevs.invui.** { *; }
 -keepclassmembers class xyz.xenondevs.inventoryaccess.** { *; }
+-keepclasseswithmembernames class xyz.xenondevs.invui.** { *; }
+-keepclasseswithmembernames class xyz.xenondevs.inventoryaccess.** { *; }
+
+# ── Dontshrink / Dontoptimize for InvUI ──────────────────────────
+-dontshrink
+-dontoptimize
+
+# ── Keep Bukkit/Spigot API (InvUI reflection) ────────────────────
+-keep class org.bukkit.** { *; }
+-keep class org.spigotmc.** { *; }
 
 # ── Optimization ─────────────────────────────────────────────────
 -optimizationpasses 3
