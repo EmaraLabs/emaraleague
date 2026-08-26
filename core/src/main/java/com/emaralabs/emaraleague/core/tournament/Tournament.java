@@ -34,10 +34,6 @@ public record Tournament(
         return new Tournament(id, name, mode, bracketType, newState, teams, matches, registeredPlayers);
     }
 
-    public Tournament withRegisteredPlayers(Set<UUID> registeredPlayers) {
-        return new Tournament(id, name, mode, bracketType, state, teams, matches, registeredPlayers);
-    }
-
     public Tournament addRegisteredPlayer(UUID playerId) {
         Set<UUID> updated = new HashSet<>(registeredPlayers);
         updated.add(playerId);

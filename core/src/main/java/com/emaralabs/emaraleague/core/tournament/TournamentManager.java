@@ -28,6 +28,30 @@ public final class TournamentManager {
         }
     }
 
+    /**
+     * Reset tournament to clean state for fresh start.
+     * Clears player registrations and resets to REGISTRATION state.
+     * Called on plugin startup to fix stale state from previous session.
+     */
+    public void resetTournamentForStartup(String name) {
+        Tournament current = byName.get(name.toLowerCase());
+        if (current == null) {
+            return;
+        }
+        // Clear all player registrations by removing each one
+        Tournament cleared = current;
+        for (java.util.UUID playerId : new java.util.HashSet<>(current.registeredPlayers())) {
+            cleared = cleared.removeRegisteredPlayer(playerId);
+        }
+        // Reset to REGISTRATION state
+        Tournament reset = cleared.withState(TournamentState.REGISTRATION);
+        byName.put(name.toLowerCase(), reset);
+        byId.put(reset.id(), reset);
+        if (persistence != null) {
+            persistence.update(reset);
+        }
+    }
+
     public Tournament createTournament(String name, String mode, BracketType bracketType) {
         if (byName.containsKey(name.toLowerCase())) {
             throw new IllegalArgumentException("Tournament already exists: " + name);

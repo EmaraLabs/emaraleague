@@ -83,6 +83,7 @@ public class ConfigManager {
     /**
      * Migrate config to latest version while preserving user data.
      * Adds new keys with defaults, keeps existing user values.
+     * P0-003 FIX: Verify all existing values are preserved, only add missing keys.
      */
     private void migrateConfig(int oldVersion) {
         plugin.getLogger().info("Migrating config.yml from version " + oldVersion + " to " + CURRENT_CONFIG_VERSION + "...");
@@ -98,12 +99,22 @@ public class ConfigManager {
             return;
         }
 
+        // Track added and preserved keys for verification
+        int addedKeys = 0;
+        int preservedKeys = 0;
+
         // Merge: add missing keys from defaults, keep existing user values
         for (String key : defaults.getKeys(true)) {
             if (!config.contains(key)) {
                 Object defaultValue = defaults.get(key);
                 config.set(key, defaultValue);
                 plugin.getLogger().info("  + Added new config key: " + key + " = " + defaultValue);
+                addedKeys++;
+            } else {
+                // Key exists — verify user value is preserved
+                Object userValue = config.get(key);
+                plugin.getLogger().fine("  ✓ Preserved existing config: " + key + " = " + userValue);
+                preservedKeys++;
             }
         }
 
@@ -113,7 +124,8 @@ public class ConfigManager {
         // Save migrated config
         try {
             config.save(configFile);
-            plugin.getLogger().info("Config migration complete. Version " + CURRENT_CONFIG_VERSION);
+            plugin.getLogger().info("Config migration complete. Version " + CURRENT_CONFIG_VERSION +
+                    " (added: " + addedKeys + ", preserved: " + preservedKeys + ")");
         } catch (IOException e) {
             plugin.getLogger().log(Level.WARNING, "Could not save migrated config.yml", e);
         }

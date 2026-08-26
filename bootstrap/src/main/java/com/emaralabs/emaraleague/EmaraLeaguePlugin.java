@@ -84,6 +84,21 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             tournamentManager.setPersistence(tournamentRepository);
             tournamentManager.loadFromDatabase();
 
+            // P0-001/P0-002 FIX: Clear stale tournament state on startup
+            // Matches and sessions are transient (in-memory only), so any tournament
+            // loaded from DB with state != REGISTRATION is inconsistent and must be reset
+            for (com.emaralabs.emaraleague.core.tournament.Tournament t : tournamentManager.getTournaments()) {
+                if (t.state() != com.emaralabs.emaraleague.core.tournament.TournamentState.REGISTRATION) {
+                    getLogger().warning("Tournament '" + t.name() + "' has stale state " + t.state() +
+                            " from previous session. Resetting to REGISTRATION.");
+                }
+                if (!t.registeredPlayers().isEmpty()) {
+                    getLogger().info("Clearing " + t.registeredPlayers().size() +
+                            " stale player registrations from tournament '" + t.name() + "'");
+                }
+                tournamentManager.resetTournamentForStartup(t.name());
+            }
+
             arenaManager = new ArenaManager();
             arenaPersistence = new ArenaPersistence(this);
             arenaPersistence.load(arenaManager);
