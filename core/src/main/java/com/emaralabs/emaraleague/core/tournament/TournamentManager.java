@@ -53,10 +53,14 @@ public final class TournamentManager {
     }
 
     public Tournament createTournament(String name, String mode, BracketType bracketType) {
+        return createTournament(name, mode, bracketType, TournamentFormat.TEAM, 2);
+    }
+
+    public Tournament createTournament(String name, String mode, BracketType bracketType, TournamentFormat format, int teamSize) {
         if (byName.containsKey(name.toLowerCase())) {
             throw new IllegalArgumentException("Tournament already exists: " + name);
         }
-        Tournament tournament = new Tournament(name, mode, bracketType);
+        Tournament tournament = new Tournament(name, mode, bracketType, format, teamSize);
         byName.put(name.toLowerCase(), tournament);
         byId.put(tournament.id(), tournament);
         if (persistence != null) {
@@ -263,6 +267,11 @@ public final class TournamentManager {
         return getPlayersInTeam(tournamentName, teamId).size();
     }
 
+    /**
+     * Register player for tournament.
+     * For INDIVIDUAL format: player is registered directly (no team creation).
+     * For TEAM format: player is registered and auto-assigned to a team.
+     */
     public Tournament registerPlayer(String tournamentName, UUID playerId) {
         Tournament current = byName.get(tournamentName.toLowerCase());
         if (current == null) {
@@ -271,13 +280,30 @@ public final class TournamentManager {
         if (current.isPlayerRegistered(playerId)) {
             throw new IllegalStateException("Player is already registered in this tournament");
         }
+
+        // For INDIVIDUAL: just register, no team creation
+        if (current.isIndividual()) {
+            Tournament updated = current.addRegisteredPlayer(playerId);
+            byName.put(tournamentName.toLowerCase(), updated);
+            byId.put(updated.id(), updated);
+            if (persistence != null) {
+                persistence.update(updated);
+            }
+            return updated;
+        }
+
+        // For TEAM: register and auto-assign
         Tournament updated = current.addRegisteredPlayer(playerId);
         byName.put(tournamentName.toLowerCase(), updated);
         byId.put(updated.id(), updated);
         if (persistence != null) {
             persistence.update(updated);
         }
-        return updated;
+
+        // Auto-assign to team with fewest players
+        autoAssignToTeam(tournamentName, playerId);
+
+        return byName.get(tournamentName.toLowerCase());
     }
 
     public Tournament unregisterPlayer(String tournamentName, UUID playerId) {
@@ -306,6 +332,10 @@ public final class TournamentManager {
                 .orElse(0);
     }
 
+    /**
+     * Auto-assign player to team with fewest players.
+     * Only applicable for TEAM format tournaments.
+     */
     public Tournament autoAssignToTeam(String tournamentName, UUID playerId) {
         Tournament current = byName.get(tournamentName.toLowerCase());
         if (current == null) {
@@ -313,6 +343,9 @@ public final class TournamentManager {
         }
         if (current.state() != TournamentState.REGISTRATION) {
             throw new IllegalStateException("Cannot assign players after registration closes");
+        }
+        if (current.isIndividual()) {
+            throw new IllegalStateException("Individual tournaments do not have teams");
         }
 
         // Find team with fewest players
@@ -346,8 +379,16 @@ public final class TournamentManager {
 
     public boolean canStart(String tournamentName) {
         return getTournament(tournamentName)
-                .map(t -> t.teams().size() >= 2 &&
-                        t.teams().stream().allMatch(team -> team.getPlayerCount() >= 1))
+                .map(t -> {
+                    if (t.isIndividual()) {
+                        // INDIVIDUAL: need at least 2 players
+                        return t.getRegisteredCount() >= 2;
+                    } else {
+                        // TEAM: need at least 2 teams with at least 1 player each
+                        return t.teams().size() >= 2 &&
+                                t.teams().stream().allMatch(team -> team.getPlayerCount() >= 1);
+                    }
+                })
                 .orElse(false);
     }
 }

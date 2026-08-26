@@ -38,10 +38,17 @@ public class DatabaseManager {
                     mode VARCHAR(100) NOT NULL,
                     bracket_type VARCHAR(50) NOT NULL,
                     state VARCHAR(50) NOT NULL,
+                    format VARCHAR(20) DEFAULT 'TEAM',
+                    team_size INT DEFAULT 2,
+                    started_at BIGINT DEFAULT 0,
+                    ended_at BIGINT DEFAULT 0,
                     created_at BIGINT NOT NULL,
                     updated_at BIGINT NOT NULL
                 )
                 """);
+            
+            // Migration: add new columns if they don't exist (for existing databases)
+            migrateTournamentTable(conn);
             
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS teams (
@@ -81,6 +88,30 @@ public class DatabaseManager {
                 """);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database schema", e);
+        }
+    }
+
+    /**
+     * Migrate existing tournament table to add new columns.
+     * SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so we check manually.
+     */
+    private void migrateTournamentTable(Connection conn) throws SQLException {
+        String[] newColumns = {
+            "ALTER TABLE tournaments ADD COLUMN format VARCHAR(20) DEFAULT 'TEAM'",
+            "ALTER TABLE tournaments ADD COLUMN team_size INT DEFAULT 2",
+            "ALTER TABLE tournaments ADD COLUMN started_at BIGINT DEFAULT 0",
+            "ALTER TABLE tournaments ADD COLUMN ended_at BIGINT DEFAULT 0"
+        };
+
+        for (String sql : newColumns) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute(sql);
+            } catch (SQLException e) {
+                // Column already exists — ignore
+                if (!e.getMessage().contains("duplicate column name")) {
+                    throw e;
+                }
+            }
         }
     }
 

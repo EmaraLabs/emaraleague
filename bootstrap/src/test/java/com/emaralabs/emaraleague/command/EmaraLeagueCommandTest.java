@@ -93,7 +93,8 @@ class EmaraLeagueCommandTest {
 
         cmd.onCommand(sender, null, "emaraleague", new String[]{"info", "SummerCup"});
 
-        verify(sender).sendMessage(any(net.kyori.adventure.text.Component.class));
+        // New handleInfo sends multiple Component messages (header + fields)
+        verify(sender, atLeastOnce()).sendMessage(any(net.kyori.adventure.text.Component.class));
     }
 
     @Test

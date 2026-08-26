@@ -2,6 +2,7 @@ package com.emaralabs.emaraleague.infrastructure.database;
 
 import com.emaralabs.emaraleague.core.tournament.Tournament;
 import com.emaralabs.emaraleague.core.tournament.TournamentPersistence;
+import com.emaralabs.emaraleague.core.tournament.TournamentFormat;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -28,7 +29,7 @@ public class TournamentRepository implements Repository<Tournament, UUID>, Tourn
     @Override
     public CompletableFuture<Tournament> save(Tournament entity) {
         return CompletableFuture.supplyAsync(() -> {
-            String sql = "INSERT INTO tournaments (id, name, mode, bracket_type, state, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO tournaments (id, name, mode, bracket_type, state, format, team_size, created_at, started_at, ended_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (Connection conn = databaseManager.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, entity.id().toString());
@@ -36,8 +37,12 @@ public class TournamentRepository implements Repository<Tournament, UUID>, Tourn
                 stmt.setString(3, entity.mode());
                 stmt.setString(4, entity.bracketType().name());
                 stmt.setString(5, entity.state().name());
-                stmt.setLong(6, System.currentTimeMillis());
-                stmt.setLong(7, System.currentTimeMillis());
+                stmt.setString(6, entity.format().name());
+                stmt.setInt(7, entity.teamSize());
+                stmt.setLong(8, entity.createdAt());
+                stmt.setLong(9, entity.startedAt());
+                stmt.setLong(10, entity.endedAt());
+                stmt.setLong(11, System.currentTimeMillis());
                 stmt.executeUpdate();
                 return entity;
             } catch (SQLException e) {
@@ -107,15 +112,19 @@ public class TournamentRepository implements Repository<Tournament, UUID>, Tourn
     @Override
     public CompletableFuture<Tournament> update(Tournament entity) {
         return CompletableFuture.supplyAsync(() -> {
-            String sql = "UPDATE tournaments SET name = ?, mode = ?, bracket_type = ?, state = ?, updated_at = ? WHERE id = ?";
+            String sql = "UPDATE tournaments SET name = ?, mode = ?, bracket_type = ?, state = ?, format = ?, team_size = ?, started_at = ?, ended_at = ?, updated_at = ? WHERE id = ?";
             try (Connection conn = databaseManager.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, entity.name());
                 stmt.setString(2, entity.mode());
                 stmt.setString(3, entity.bracketType().name());
                 stmt.setString(4, entity.state().name());
-                stmt.setLong(5, System.currentTimeMillis());
-                stmt.setString(6, entity.id().toString());
+                stmt.setString(5, entity.format().name());
+                stmt.setInt(6, entity.teamSize());
+                stmt.setLong(7, entity.startedAt());
+                stmt.setLong(8, entity.endedAt());
+                stmt.setLong(9, System.currentTimeMillis());
+                stmt.setString(10, entity.id().toString());
                 stmt.executeUpdate();
                 return entity;
             } catch (SQLException e) {
@@ -127,6 +136,14 @@ public class TournamentRepository implements Repository<Tournament, UUID>, Tourn
     }
 
     private Tournament mapResultSetToTournament(ResultSet rs) throws SQLException {
+        // Parse format (default TEAM for backward compatibility)
+        TournamentFormat format;
+        try {
+            format = TournamentFormat.valueOf(rs.getString("format"));
+        } catch (Exception e) {
+            format = TournamentFormat.TEAM; // backward compatibility
+        }
+
         return new Tournament(
             UUID.fromString(rs.getString("id")),
             rs.getString("name"),
@@ -135,7 +152,14 @@ public class TournamentRepository implements Repository<Tournament, UUID>, Tourn
             com.emaralabs.emaraleague.core.tournament.TournamentState.valueOf(rs.getString("state")),
             new ArrayList<>(),
             new ArrayList<>(),
-            new java.util.HashSet<>()
+            new java.util.HashSet<>(),
+            format,
+            rs.getInt("team_size"),
+            new java.util.HashMap<>(),
+            null,
+            rs.getLong("created_at"),
+            rs.getLong("started_at"),
+            rs.getLong("ended_at")
         );
     }
 

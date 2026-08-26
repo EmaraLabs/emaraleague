@@ -5,6 +5,7 @@ import com.emaralabs.emaraleague.core.arena.ArenaManager;
 import com.emaralabs.emaraleague.core.tournament.BracketType;
 import com.emaralabs.emaraleague.core.tournament.Team;
 import com.emaralabs.emaraleague.core.tournament.Tournament;
+import com.emaralabs.emaraleague.core.tournament.TournamentFormat;
 import com.emaralabs.emaraleague.core.tournament.TournamentManager;
 import com.emaralabs.emaraleague.core.tournament.TournamentState;
 import com.emaralabs.emaraleague.core.ui.EmaraTheme;
@@ -51,6 +52,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             new SubCommand("arena", "/emaraleague arena <create|setcenter|setlobby|list|delete>", "Manage arenas", "emaraleague.admin"),
             new SubCommand("history", "/emaraleague history", "View match history", "emaraleague.use"),
             new SubCommand("stats", "/emaraleague stats [player]", "View player statistics", "emaraleague.use"),
+            new SubCommand("participants", "/emaraleague participants <tournament>", "View tournament participants", "emaraleague.use"),
             new SubCommand("spectate", "/emaraleague spectate <tournament>", "Spectate an active match", "emaraleague.use"),
             new SubCommand("rejoin", "/emaraleague rejoin", "Rejoin your active match", "emaraleague.play"),
             new SubCommand("help", "/emaraleague help [command]", "Show help", "emaraleague.use"),
@@ -103,6 +105,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
                 case "arena" -> handleArena(sender, args);
                 case "history" -> handleHistory(sender);
                 case "stats" -> handleStats(sender, args);
+                case "participants" -> handleParticipants(sender, args);
                 case "spectate" -> handleSpectate(sender, args);
                 case "rejoin" -> handleRejoin(sender);
                 case "help" -> sendHelp(sender);
@@ -126,12 +129,14 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
     private void handleCreate(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague create <name> <mode>")));
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague create <name> <mode> [format] [team-size]")));
             return;
         }
 
         String name = args[1];
         String mode = args[2].toLowerCase();
+        String formatStr = args.length >= 4 ? args[3].toLowerCase() : "team";
+        int teamSize = args.length >= 5 ? Integer.parseInt(args[4]) : 2;
 
         var nameResult = InputValidator.validateTournamentName(name);
         if (!nameResult.isValid()) {
@@ -152,9 +157,24 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        TournamentFormat format;
         try {
-            tournamentManager.createTournament(name, mode, BracketType.SINGLE_ELIMINATION);
+            format = TournamentFormat.valueOf(formatStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage(MessageFormatter.error("Invalid format: " + formatStr + ". Use 'individual' or 'team'."));
+            return;
+        }
+
+        if (teamSize < 1 || teamSize > 16) {
+            sender.sendMessage(MessageFormatter.error("Team size must be between 1 and 16."));
+            return;
+        }
+
+        try {
+            tournamentManager.createTournament(name, mode, BracketType.SINGLE_ELIMINATION, format, teamSize);
+            String formatDisplay = format == TournamentFormat.INDIVIDUAL ? "Individual" : "Team (" + teamSize + " players)";
             sender.sendMessage(messages.get("tournament-created", Map.of("name", name)));
+            sender.sendMessage(MessageFormatter.info("Format: " + formatDisplay));
         } catch (IllegalArgumentException e) {
             sender.sendMessage(MessageFormatter.error(e.getMessage()));
         }
@@ -191,19 +211,27 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
         // Bug 2 fix: Auto-create teams if none exist, then auto-assign
         Tournament tournament = tournamentManager.getTournament(name).get();
+
+        // For INDIVIDUAL: just register, no team creation
+        if (tournament.isIndividual()) {
+            tournamentManager.registerPlayer(name, player.getUniqueId());
+            sender.sendMessage(messages.get("tournament-joined", Map.of("name", name)));
+            sender.sendMessage(MessageFormatter.info("You are registered as an individual participant."));
+            return;
+        }
+
+        // For TEAM: create teams if needed, then auto-assign
         if (tournament.teams().isEmpty()) {
-            // Auto-create 2 teams for 1v1 modes, or 4 teams for FFA modes
-            int teamCount = tournament.mode().equals("duels") ? 2 : 4;
-            for (int i = 1; i <= teamCount; i++) {
-                tournamentManager.addTeam(name, new Team("Team" + i, i));
+            // Auto-create teams based on expected participants
+            int expectedTeams = Math.max(2, tournament.getRegisteredCount() / tournament.teamSize() + 1);
+            for (int i = 1; i <= expectedTeams; i++) {
+                String teamName = tournament.getTeamDisplayName(String.valueOf((char)('A' + i - 1)));
+                tournamentManager.addTeam(name, new Team(teamName, i));
             }
         }
 
-        // Register player
+        // Register player (this also auto-assigns for TEAM format)
         tournamentManager.registerPlayer(name, player.getUniqueId());
-
-        // Auto-assign to team with fewest players
-        tournamentManager.autoAssignToTeam(name, player.getUniqueId());
 
         Optional<Team> assignedTeam = tournamentManager.getTeamForPlayer(name, player.getUniqueId());
         String teamName = assignedTeam.map(Team::name).orElse("Unknown");
@@ -350,12 +378,74 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("  Win Rate: ", EmaraTheme.MUTED)
                 .append(Component.text(String.format("%.1f%%", winRate * 100), EmaraTheme.INFO)));
         sender.sendMessage(Component.text("  K/D Ratio: ", EmaraTheme.MUTED)
-                .append(Component.text(String.format("%.2f", kd), EmaraTheme.ACCENT)));
+                .append(Component.text(String.format("%.2f", kd), EmaraTheme.INFO)));
+    }
+
+    private void handleParticipants(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague participants <tournament>")));
+            return;
+        }
+
+        String name = args[1];
+        var nameResult = InputValidator.validateTournamentName(name);
+        if (!nameResult.isValid()) {
+            sender.sendMessage(MessageFormatter.error(nameResult.getErrorMessage()));
+            return;
+        }
+
+        Optional<Tournament> tournament = tournamentManager.getTournament(name);
+        if (tournament.isEmpty()) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", name)));
+            return;
+        }
+
+        Tournament t = tournament.get();
+
+        sender.sendMessage(MessageFormatter.header("Participants: " + t.name()));
+        sender.sendMessage(Component.empty());
+
+        if (t.isIndividual()) {
+            // INDIVIDUAL: list players
+            sender.sendMessage(Component.text("  Format: Individual", EmaraTheme.MUTED));
+            sender.sendMessage(Component.text("  Players: " + t.getRegisteredCount(), EmaraTheme.INFO));
+            sender.sendMessage(Component.empty());
+
+            int index = 1;
+            for (java.util.UUID playerId : t.registeredPlayers()) {
+                org.bukkit.OfflinePlayer player = org.bukkit.Bukkit.getOfflinePlayer(playerId);
+                String playerName = player.getName() != null ? player.getName() : "Unknown";
+                sender.sendMessage(Component.text("  " + index + ". ", EmaraTheme.MUTED)
+                        .append(Component.text(playerName, EmaraTheme.TEXT)));
+                index++;
+            }
+        } else {
+            // TEAM: list teams with players
+            sender.sendMessage(Component.text("  Format: Team (" + t.teamSize() + " players)", EmaraTheme.MUTED));
+            sender.sendMessage(Component.text("  Teams: " + t.teams().size(), EmaraTheme.INFO));
+            sender.sendMessage(Component.text("  Total Players: " + t.getRegisteredCount(), EmaraTheme.INFO));
+            sender.sendMessage(Component.empty());
+
+            int index = 1;
+            for (Team team : t.teams()) {
+                sender.sendMessage(Component.text("  " + index + ". ", EmaraTheme.MUTED)
+                        .append(Component.text(team.name(), EmaraTheme.ACCENT, TextDecoration.BOLD))
+                        .append(Component.text(" (" + team.getPlayerCount() + "/" + t.teamSize() + ")", EmaraTheme.MUTED)));
+
+                for (java.util.UUID playerId : team.playerIds()) {
+                    org.bukkit.OfflinePlayer player = org.bukkit.Bukkit.getOfflinePlayer(playerId);
+                    String playerName = player.getName() != null ? player.getName() : "Unknown";
+                    sender.sendMessage(Component.text("     - ", EmaraTheme.MUTED)
+                            .append(Component.text(playerName, EmaraTheme.TEXT)));
+                }
+                index++;
+            }
+        }
     }
 
     private void handleTeam(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team <join|leave|list>")));
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team <join|leave|list|info>")));
             return;
         }
 
@@ -363,7 +453,58 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             case "join" -> handleTeamJoin(sender, args);
             case "leave" -> handleTeamLeave(sender);
             case "list" -> handleTeamList(sender, args);
-            default -> sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team <join|leave|list>")));
+            case "info" -> handleTeamInfo(sender, args);
+            default -> sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team <join|leave|list|info>")));
+        }
+    }
+
+    private void handleTeamInfo(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            sender.sendMessage(messages.get("invalid-usage", Map.of("usage", "/emaraleague team info <tournament> <team>")));
+            return;
+        }
+
+        String tournamentName = args[2];
+        String teamName = args[3];
+
+        Optional<Tournament> tournament = tournamentManager.getTournament(tournamentName);
+        if (tournament.isEmpty()) {
+            sender.sendMessage(messages.get("tournament-not-found", Map.of("name", tournamentName)));
+            return;
+        }
+
+        if (tournament.get().isIndividual()) {
+            sender.sendMessage(MessageFormatter.error("Individual tournaments do not have teams."));
+            return;
+        }
+
+        Optional<Team> team = tournament.get().teams().stream()
+                .filter(t -> t.name().equalsIgnoreCase(teamName))
+                .findFirst();
+
+        if (team.isEmpty()) {
+            sender.sendMessage(MessageFormatter.error("Team not found: " + teamName));
+            return;
+        }
+
+        Team t = team.get();
+        Tournament tournamentObj = tournament.get();
+
+        sender.sendMessage(MessageFormatter.header("Team: " + t.name()));
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.text("  Tournament: ", EmaraTheme.MUTED)
+                .append(Component.text(tournamentObj.name(), EmaraTheme.TEXT)));
+        sender.sendMessage(Component.text("  Status: ", EmaraTheme.MUTED)
+                .append(Component.text(t.getPlayerCount() + "/" + tournamentObj.teamSize() + " players", 
+                        t.getPlayerCount() == tournamentObj.teamSize() ? EmaraTheme.SUCCESS : EmaraTheme.WARNING)));
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.text("  Members:", EmaraTheme.PRIMARY));
+
+        for (java.util.UUID playerId : t.playerIds()) {
+            org.bukkit.OfflinePlayer player = org.bukkit.Bukkit.getOfflinePlayer(playerId);
+            String playerName = player.getName() != null ? player.getName() : "Unknown";
+            sender.sendMessage(Component.text("  - ", EmaraTheme.MUTED)
+                    .append(Component.text(playerName, EmaraTheme.TEXT)));
         }
     }
 
@@ -678,11 +819,98 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
 
         Tournament t = tournament.get();
         String friendlyStatus = getFriendlyStatus(t.state());
-        sender.sendMessage(messages.get("tournament-info", Map.of(
-                "name", t.name(),
-                "mode", t.mode(),
-                "status", friendlyStatus
-        )));
+
+        // Header
+        sender.sendMessage(Component.text("✦ ", EmaraTheme.PRIMARY)
+                .append(Component.text(t.name(), EmaraTheme.PRIMARY, TextDecoration.BOLD))
+                .append(Component.text(" ✦", EmaraTheme.PRIMARY)));
+        sender.sendMessage(Component.empty());
+
+        // Basic info
+        sender.sendMessage(Component.text("  Status: ", EmaraTheme.MUTED)
+                .append(Component.text(friendlyStatus, getStatusColor(t.state()))));
+        sender.sendMessage(Component.text("  Mode: ", EmaraTheme.MUTED)
+                .append(Component.text(t.mode(), EmaraTheme.TEXT)));
+        sender.sendMessage(Component.text("  Format: ", EmaraTheme.MUTED)
+                .append(Component.text(t.isIndividual() ? "Individual" : "Team (" + t.teamSize() + " players)", EmaraTheme.TEXT)));
+
+        // Format-specific participant info
+        if (t.isIndividual()) {
+            sender.sendMessage(Component.text("  Participants: ", EmaraTheme.MUTED)
+                    .append(Component.text(t.getRegisteredCount() + " players", EmaraTheme.INFO)));
+        } else {
+            sender.sendMessage(Component.text("  Teams: ", EmaraTheme.MUTED)
+                    .append(Component.text(t.teams().size() + " teams", EmaraTheme.INFO)));
+            sender.sendMessage(Component.text("  Players: ", EmaraTheme.MUTED)
+                    .append(Component.text(t.getRegisteredCount() + " registered", EmaraTheme.INFO)));
+        }
+
+        // Timestamps
+        if (t.startedAt() > 0) {
+            sender.sendMessage(Component.text("  Started: ", EmaraTheme.MUTED)
+                    .append(Component.text(formatTimestamp(t.startedAt()), EmaraTheme.TEXT)));
+        }
+        if (t.endedAt() > 0) {
+            sender.sendMessage(Component.text("  Ended: ", EmaraTheme.MUTED)
+                    .append(Component.text(formatTimestamp(t.endedAt()), EmaraTheme.TEXT)));
+            long duration = t.getDurationSeconds();
+            if (duration > 0) {
+                sender.sendMessage(Component.text("  Duration: ", EmaraTheme.MUTED)
+                        .append(Component.text(formatDuration(duration), EmaraTheme.TEXT)));
+            }
+        }
+
+        // Match progress (if started)
+        if (t.state() == TournamentState.IN_PROGRESS || t.state() == TournamentState.ENDED) {
+            com.emaralabs.emaraleague.core.match.MatchEngine matchEngine =
+                    com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
+            java.util.List<com.emaralabs.emaraleague.core.tournament.Match> matches = matchEngine.getMatches(t.name());
+            long completed = matches.stream().filter(m -> m.state() == com.emaralabs.emaraleague.core.tournament.MatchState.ENDED).count();
+            long active = matches.stream().filter(m -> m.state() == com.emaralabs.emaraleague.core.tournament.MatchState.INGAME).count();
+
+            if (!matches.isEmpty()) {
+                sender.sendMessage(Component.empty());
+                sender.sendMessage(Component.text("  Matches: ", EmaraTheme.MUTED)
+                        .append(Component.text(completed + "/" + matches.size() + " completed", EmaraTheme.INFO)));
+                if (active > 0) {
+                    sender.sendMessage(Component.text("  Active: ", EmaraTheme.MUTED)
+                            .append(Component.text(active + " match(es) in progress", EmaraTheme.WARNING)));
+                }
+            }
+        }
+
+        // Winner (if ended)
+        if (t.state() == TournamentState.ENDED) {
+            com.emaralabs.emaraleague.core.match.MatchEngine matchEngine =
+                    com.emaralabs.emaraleague.EmaraLeaguePlugin.getInstance().getMatchEngine();
+            java.util.Optional<Team> champion = matchEngine.getChampion(t.name());
+            if (champion.isPresent()) {
+                sender.sendMessage(Component.empty());
+                sender.sendMessage(Component.text("  🏆 Winner: ", EmaraTheme.PRIMARY)
+                        .append(Component.text(champion.get().name(), EmaraTheme.PRIMARY, TextDecoration.BOLD)));
+            }
+        }
+    }
+
+    private String formatTimestamp(long timestamp) {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm:ss");
+        return sdf.format(new java.util.Date(timestamp));
+    }
+
+    private String formatDuration(long seconds) {
+        long minutes = seconds / 60;
+        long secs = seconds % 60;
+        return String.format("%d:%02d", minutes, secs);
+    }
+
+    private net.kyori.adventure.text.format.TextColor getStatusColor(TournamentState state) {
+        return switch (state) {
+            case REGISTRATION -> EmaraTheme.SUCCESS;
+            case STARTING -> EmaraTheme.WARNING;
+            case IN_PROGRESS -> EmaraTheme.ERROR;
+            case ENDED -> EmaraTheme.PRIMARY;
+            case CANCELLED -> EmaraTheme.MUTED;
+        };
     }
 
     private String getFriendlyStatus(TournamentState state) {
@@ -915,7 +1143,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (args[0].toLowerCase()) {
                 case "create" -> filterCompletions(List.of("<name>"), args[1]);
-                case "delete", "join", "start", "info", "team", "spectate" -> filterCompletions(getTournamentNames(), args[1]);
+                case "delete", "join", "start", "info", "team", "spectate", "participants" -> filterCompletions(getTournamentNames(), args[1]);
                 case "arena" -> filterCompletions(List.of("create", "setcenter", "setlobby", "setspawn", "list", "delete"), args[1]);
                 default -> Collections.emptyList();
             };
@@ -931,13 +1159,28 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("list")) {
                 return filterCompletions(getTournamentNames(), args[2]);
             }
+            if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("info")) {
+                return filterCompletions(getTournamentNames(), args[2]);
+            }
             if (args[0].equalsIgnoreCase("arena")) {
                 return filterCompletions(getArenaNames(), args[2]);
             }
         }
 
-        if (args.length == 4 && args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("join")) {
-            return filterCompletions(getTeamNames(args[2]), args[3]);
+        if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("create")) {
+                return filterCompletions(List.of("individual", "team"), args[3]);
+            }
+            if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("join")) {
+                return filterCompletions(getTeamNames(args[2]), args[3]);
+            }
+            if (args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("info")) {
+                return filterCompletions(getTeamNames(args[2]), args[3]);
+            }
+        }
+
+        if (args.length == 5 && args[0].equalsIgnoreCase("create")) {
+            return filterCompletions(List.of("2", "3", "4", "5", "6", "8"), args[4]);
         }
 
         return Collections.emptyList();

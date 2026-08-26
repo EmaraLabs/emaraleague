@@ -2,8 +2,15 @@ package com.emaralabs.emaraleague.core.arena;
 
 import org.bukkit.Location;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Arena with reusable spawn slots (A-D).
+ * Spawn slots are independent of participant identity — the tournament
+ * assigns players or teams to slots at match time.
+ */
 public class Arena {
 
     private final UUID id;
@@ -11,8 +18,7 @@ public class Arena {
     private ArenaState state;
     private Location center;
     private Location lobbySpawn;
-    private Location spawnA;
-    private Location spawnB;
+    private final Map<SpawnSlot, Location> spawnSlots = new EnumMap<>(SpawnSlot.class);
 
     public Arena(String name) {
         this.id = UUID.randomUUID();
@@ -53,25 +59,52 @@ public class Arena {
         this.lobbySpawn = lobbySpawn;
     }
 
+    // ── Spawn Slot API ────────────────────────────────────────────
+
+    public void setSpawn(SpawnSlot slot, Location location) {
+        spawnSlots.put(slot, location);
+    }
+
+    public Location getSpawn(SpawnSlot slot) {
+        return spawnSlots.getOrDefault(slot, center);
+    }
+
+    public boolean hasSpawn(SpawnSlot slot) {
+        return spawnSlots.containsKey(slot);
+    }
+
+    public Map<SpawnSlot, Location> getSpawnSlots() {
+        return Map.copyOf(spawnSlots);
+    }
+
+    // ── Legacy compatibility ──────────────────────────────────────
+
+    @Deprecated
     public Location getSpawnA() {
-        return spawnA != null ? spawnA : center;
+        return getSpawn(SpawnSlot.A);
     }
 
+    @Deprecated
     public void setSpawnA(Location spawnA) {
-        this.spawnA = spawnA;
+        setSpawn(SpawnSlot.A, spawnA);
     }
 
+    @Deprecated
     public Location getSpawnB() {
-        return spawnB != null ? spawnB : center;
+        return getSpawn(SpawnSlot.B);
     }
 
+    @Deprecated
     public void setSpawnB(Location spawnB) {
-        this.spawnB = spawnB;
+        setSpawn(SpawnSlot.B, spawnB);
     }
 
+    @Deprecated
     public boolean hasSpawnPoints() {
-        return spawnA != null && spawnB != null;
+        return hasSpawn(SpawnSlot.A) && hasSpawn(SpawnSlot.B);
     }
+
+    // ── State transitions ─────────────────────────────────────────
 
     public boolean canTransitionTo(ArenaState next) {
         return switch (state) {
