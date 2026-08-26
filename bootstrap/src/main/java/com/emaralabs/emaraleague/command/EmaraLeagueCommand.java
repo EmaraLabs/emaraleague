@@ -238,7 +238,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        sender.sendMessage(MessageFormatter.error("You are not in any tournament."));
+        sender.sendMessage(MessageFormatter.error("You are not in any tournament. If you joined before a server restart, please rejoin with /el join <tournament>."));
     }
 
     private void handleDelete(CommandSender sender, String[] args) {
@@ -770,7 +770,7 @@ public class EmaraLeagueCommand implements CommandExecutor, TabCompleter {
         Optional<UUID> matchId = sessions.getMatchId(playerId);
 
         if (matchId.isEmpty()) {
-            sender.sendMessage(MessageFormatter.error("You are not in an active match."));
+            sender.sendMessage(MessageFormatter.error("You are not in an active match. Matches do not persist across server restarts."));
             return;
         }
 
