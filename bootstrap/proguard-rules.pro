@@ -96,6 +96,12 @@
 -dontwarn com.mojang.authlib.**
 -dontwarn com.google.common.cache.**
 
+# ── Keep InvUI (Reflection & Static Initializers) ────────────────
+-keep class xyz.xenondevs.invui.** { *; }
+-keep class xyz.xenondevs.inventoryaccess.** { *; }
+-keepclassmembers class xyz.xenondevs.invui.** { *; }
+-keepclassmembers class xyz.xenondevs.inventoryaccess.** { *; }
+
 # ── Optimization ─────────────────────────────────────────────────
 -optimizationpasses 3
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
