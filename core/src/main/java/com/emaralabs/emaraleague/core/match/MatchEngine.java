@@ -276,6 +276,33 @@ public final class MatchEngine {
         });
     }
 
+    /**
+     * P1-002 FIX: Hide scoreboard only from players in the specified match.
+     * Previously hideFromAll() wiped scoreboards for ALL concurrent matches.
+     */
+    private void hideScoreboardFromMatchPlayers(UUID matchId) {
+        if (scoreboard == null) {
+            return;
+        }
+        Match match = matches.get(matchId);
+        if (match == null) {
+            return;
+        }
+        // Hide from match participants
+        for (UUID playerId : match.teamA().playerIds()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                scoreboard.hideFromPlayer(player);
+            }
+        }
+        for (UUID playerId : match.teamB().playerIds()) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                scoreboard.hideFromPlayer(player);
+            }
+        }
+    }
+
     private void announceMatchStartToPlayers(UUID matchId) {
         if (announcer == null) {
             return;
@@ -471,10 +498,8 @@ public final class MatchEngine {
         // Teleport players back to lobby
         teleportPlayersToLobby(matchId);
 
-        // Hide scoreboard
-        if (scoreboard != null) {
-            scoreboard.hideFromAll();
-        }
+        // P1-002 FIX: Hide scoreboard ONLY from players in THIS match (not all matches)
+        hideScoreboardFromMatchPlayers(matchId);
 
         // Announce result to players
         announceResultToPlayers(matchId, winner);

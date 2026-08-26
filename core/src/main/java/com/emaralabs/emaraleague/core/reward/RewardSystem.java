@@ -18,6 +18,7 @@ import java.util.UUID;
 public final class RewardSystem {
 
     private final Plugin plugin;
+    private EconomyProvider economyProvider = EconomyProvider.NONE;
     private List<String> championCommands = new ArrayList<>();
     private List<String> runnerUpCommands = new ArrayList<>();
     private double championMoney = 0;
@@ -27,6 +28,13 @@ public final class RewardSystem {
 
     public RewardSystem(Plugin plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * P1-004 FIX: Inject economy provider instead of using reflection.
+     */
+    public void setEconomyProvider(EconomyProvider economyProvider) {
+        this.economyProvider = economyProvider != null ? economyProvider : EconomyProvider.NONE;
     }
 
     /**
@@ -135,23 +143,16 @@ public final class RewardSystem {
     }
 
     /**
-     * Give money to a player via Vault (reflection to avoid circular dependency).
+     * Give money to a player via injected economy provider.
+     * P1-004 FIX: No more reflection — direct call on injected interface.
      */
     private void giveMoney(Player player, double amount) {
-        try {
-            Class<?> pluginClass = Class.forName("com.emaralabs.emaraleague.EmaraLeaguePlugin");
-            Object pluginInstance = pluginClass.getMethod("getInstance").invoke(null);
-            Object vaultIntegration = pluginClass.getMethod("getVaultIntegration").invoke(pluginInstance);
-
-            if (vaultIntegration != null) {
-                boolean available = (boolean) vaultIntegration.getClass().getMethod("isAvailable").invoke(vaultIntegration);
-                if (available) {
-                    vaultIntegration.getClass().getMethod("depositPlayer", String.class, double.class)
-                            .invoke(vaultIntegration, player.getName(), amount);
-                }
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to give money to " + player.getName() + ": " + e.getMessage());
+        if (!economyProvider.isAvailable()) {
+            return;
+        }
+        boolean success = economyProvider.deposit(player.getName(), amount);
+        if (!success) {
+            plugin.getLogger().warning("Failed to deposit " + amount + " to " + player.getName());
         }
     }
 }

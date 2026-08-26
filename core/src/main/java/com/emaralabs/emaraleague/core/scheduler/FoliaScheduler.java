@@ -29,9 +29,37 @@ public class FoliaScheduler implements EmaraScheduler {
     }
 
     @Override
-    public void runRepeating(Runnable task, long initialDelay, long periodTicks) {
+    public EmaraTask runRepeating(Runnable task, long initialDelay, long periodTicks) {
         if (plugin != null) {
-            plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> task.run(), initialDelay, periodTicks);
+            io.papermc.paper.threadedregions.scheduler.ScheduledTask foliaTask =
+                    plugin.getServer().getGlobalRegionScheduler()
+                            .runAtFixedRate(plugin, scheduledTask -> task.run(), initialDelay, periodTicks);
+            return new FoliaEmaraTask(foliaTask);
+        }
+        return new NoopEmaraTask();
+    }
+
+    private record FoliaEmaraTask(io.papermc.paper.threadedregions.scheduler.ScheduledTask task) implements EmaraTask {
+        @Override
+        public void cancel() {
+            if (task != null) {
+                task.cancel();
+            }
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return task == null || task.isCancelled();
+        }
+    }
+
+    private static class NoopEmaraTask implements EmaraTask {
+        @Override
+        public void cancel() {}
+
+        @Override
+        public boolean isCancelled() {
+            return true;
         }
     }
 

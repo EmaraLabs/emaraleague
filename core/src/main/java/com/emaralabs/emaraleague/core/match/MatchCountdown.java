@@ -20,6 +20,7 @@ public final class MatchCountdown {
     private boolean running;
     private BossBar bossBar;
     private com.emaralabs.emaraleague.core.effects.MatchEffects effects;
+    private EmaraScheduler.EmaraTask countdownTask;
 
     public MatchCountdown(EmaraScheduler scheduler, MessageRegistry messages) {
         this.scheduler = scheduler;
@@ -48,7 +49,7 @@ public final class MatchCountdown {
             player.showBossBar(bossBar);
         }
 
-        scheduler.runRepeating(() -> {
+        countdownTask = scheduler.runRepeating(() -> {
             if (remainingSeconds <= 0) {
                 running = false;
                 hideBossBar();
@@ -107,6 +108,11 @@ public final class MatchCountdown {
         running = false;
         remainingSeconds = 0;
         hideBossBar();
+        // P1-001 related: cancel the repeating task so it doesn't fire onComplete after cancel
+        if (countdownTask != null && !countdownTask.isCancelled()) {
+            countdownTask.cancel();
+            countdownTask = null;
+        }
     }
 
     public boolean isRunning() {

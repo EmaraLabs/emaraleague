@@ -60,6 +60,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
     private com.emaralabs.emaraleague.core.player.LogoutGuardService logoutGuardService;
     private com.emaralabs.emaraleague.core.player.PlayerStats playerStats;
     private com.emaralabs.emaraleague.integrations.vault.VaultIntegration vaultIntegration;
+    private MatchTimeout matchTimeout;
     private final Map<String, EmaraAddon> addons = new ConcurrentHashMap<>();
 
     @Override
@@ -139,6 +140,18 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             com.emaralabs.emaraleague.core.reward.RewardSystem rewardSystem =
                     new com.emaralabs.emaraleague.core.reward.RewardSystem(this);
             rewardSystem.loadConfig(getConfig());
+            // P1-004 FIX: Inject economy provider instead of reflection
+            rewardSystem.setEconomyProvider(new com.emaralabs.emaraleague.core.reward.EconomyProvider() {
+                @Override
+                public boolean isAvailable() {
+                    return vaultIntegration != null && vaultIntegration.isAvailable();
+                }
+
+                @Override
+                public boolean deposit(String playerName, double amount) {
+                    return vaultIntegration != null && vaultIntegration.depositPlayer(playerName, amount);
+                }
+            });
             matchEngine.setRewardSystem(rewardSystem);
 
             // Premium scoreboard with Scoreboard Library + gradient animation
@@ -151,7 +164,7 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
             ArenaResetService arenaResetService = new ArenaResetService();
             matchEngine.setArenaResetService(arenaResetService);
 
-            MatchTimeout matchTimeout = new MatchTimeout(new PaperScheduler(this), matchEngine);
+            matchTimeout = new MatchTimeout(new PaperScheduler(this), matchEngine);
             matchTimeout.setTimeoutSeconds(configManager.getMatchTimeoutSeconds());
             matchEngine.setMatchTimeout(matchTimeout);
 
@@ -205,6 +218,11 @@ public final class EmaraLeaguePlugin extends JavaPlugin implements EmaraLeagueAP
 
     @Override
     public void onDisable() {
+        // P1-001 related: cancel all match timeout tasks
+        if (matchTimeout != null) {
+            matchTimeout.cancelAll();
+        }
+
         // Stop logout guard
         if (logoutGuardService != null) {
             logoutGuardService.stop();
